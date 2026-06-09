@@ -1,7 +1,8 @@
 import asyncio
-from typing import Dict, Set
-from fastapi import WebSocket
 import json
+from typing import Dict, Set
+
+from fastapi import WebSocket
 
 
 class ConnectionManager:
@@ -17,14 +18,18 @@ class ConnectionManager:
         if match_id not in self.match_connections:
             self.match_connections[match_id] = set()
         self.match_connections[match_id].add(websocket)
-        print(f"[WS] Client connected to match {match_id}. "
-              f"Total: {len(self.match_connections[match_id])}")
+        print(
+            f"[WS] Client connected to match {match_id}. "
+            f"Total: {len(self.match_connections[match_id])}"
+        )
 
     async def connect_global(self, websocket: WebSocket):
         await websocket.accept()
         self.global_connections.add(websocket)
-        print(f"[WS] Client connected to global. "
-              f"Total: {len(self.global_connections)}")
+        print(
+            f"[WS] Client connected to global. "
+            f"Total: {len(self.global_connections)}"
+        )
 
     # ── DISCONNECT ────────────────────────────────────────────
     def disconnect_match(self, match_id: int, websocket: WebSocket):
@@ -41,7 +46,9 @@ class ConnectionManager:
     # ── BROADCAST ─────────────────────────────────────────────
     async def broadcast_match(self, match_id: int, data: dict):
         """Send update to all clients watching a specific match."""
-        print(f"[WS] Broadcasting to match {match_id}, {len(self.match_connections.get(match_id, set()))} clients")  # ← add
+        print(
+            f"[WS] Broadcasting to match {match_id}, {len(self.match_connections.get(match_id, set()))} clients"
+        )  # ← add
 
         if match_id not in self.match_connections:
             return
@@ -80,7 +87,7 @@ class ConnectionManager:
         """Broadcast to both match-specific and global channels simultaneously."""
         await asyncio.gather(
             self.broadcast_match(match_id, match_data),
-            self.broadcast_global(global_data)
+            self.broadcast_global(global_data),
         )
 
     # ── CONNECTION COUNTS ─────────────────────────────────────

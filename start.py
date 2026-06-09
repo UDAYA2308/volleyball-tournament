@@ -1,10 +1,11 @@
-import subprocess
-import socket
-import sys
 import os
-import time
 import signal
+import socket
+import subprocess
+import sys
+import time
 import webbrowser
+
 
 # ── FIND NEXT AVAILABLE PORT ──────────────────────────────────
 def find_free_port(start=8000, end=8100):
@@ -41,9 +42,7 @@ def get_local_ip():
 
 # ── WRITE FRONTEND ENV ────────────────────────────────────────
 def write_frontend_env(api_port, local_ip):
-    env_path = os.path.join(
-        os.path.dirname(__file__), "frontend", ".env"
-    )
+    env_path = os.path.join(os.path.dirname(__file__), "frontend", ".env")
     content = f"""VITE_API_URL=http://{local_ip}:{api_port}
 VITE_WS_URL=ws://{local_ip}:{api_port}
 VITE_ADMIN_PASSWORD=volleyball2026
@@ -57,14 +56,14 @@ VITE_ADMIN_PASSWORD=volleyball2026
 def main():
     root = os.path.dirname(os.path.abspath(__file__))
 
-    print("="*60)
+    print("=" * 60)
     print("🏐 Volleyball Tournament — Starting Servers")
-    print("="*60)
+    print("=" * 60)
 
     # Find ports
-    api_port      = find_free_port(8000, 8100)
+    api_port = find_free_port(8000, 8100)
     frontend_port = find_free_frontend_port(5173, 5200)
-    local_ip      = get_local_ip()
+    local_ip = get_local_ip()
 
     print(f"\n  Backend  → http://{local_ip}:{api_port}")
     print(f"  Frontend → http://{local_ip}:{frontend_port}")
@@ -78,11 +77,15 @@ def main():
     # ── START BACKEND ─────────────────────────────────────────
     print("\n  Starting backend...")
     backend_cmd = [
-        sys.executable, "-m", "uvicorn",
+        sys.executable,
+        "-m",
+        "uvicorn",
         "backend.main:app",
-        "--host", "0.0.0.0",
-        "--port", str(api_port),
-        "--reload"
+        "--host",
+        "0.0.0.0",
+        "--port",
+        str(api_port),
+        "--reload",
     ]
     backend = subprocess.Popen(
         backend_cmd,
@@ -90,7 +93,7 @@ def main():
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        bufsize=1
+        bufsize=1,
     )
     processes.append(("Backend", backend))
 
@@ -122,10 +125,14 @@ def main():
         npm_cmd = "yarn"
 
     frontend_cmd = [
-        npm_cmd, "run", "dev",
+        npm_cmd,
+        "run",
+        "dev",
         "--",
-        "--host", "0.0.0.0",
-        "--port", str(frontend_port)
+        "--host",
+        "0.0.0.0",
+        "--port",
+        str(frontend_port),
     ]
 
     # Windows needs shell=True for npm
@@ -138,7 +145,7 @@ def main():
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
-        shell=use_shell
+        shell=use_shell,
     )
     processes.append(("Frontend", frontend))
 
@@ -159,9 +166,9 @@ def main():
         print(" ❌ Frontend did not start in time")
 
     # ── PRINT ACCESS INFO ─────────────────────────────────────
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🏐 VOLLEYBALL TOURNAMENT IS LIVE")
-    print("="*60)
+    print("=" * 60)
     print(f"\n  📱 Open on any device on this network:")
     print(f"     http://{local_ip}:{frontend_port}")
     print(f"\n  🖥️  Admin panel:")
@@ -170,7 +177,7 @@ def main():
     print(f"     http://{local_ip}:{api_port}/docs")
     print(f"\n  Password: volleyball2026")
     print("\n  Press Ctrl+C to stop both servers")
-    print("="*60)
+    print("=" * 60)
 
     # Open browser automatically
     time.sleep(1)
@@ -179,11 +186,13 @@ def main():
     # ── STREAM LOGS ───────────────────────────────────────────
     def stream_logs(name, process):
         import threading
+
         def _stream():
             for line in process.stdout:
                 line = line.rstrip()
                 if line:
                     print(f"  [{name}] {line}")
+
         t = threading.Thread(target=_stream, daemon=True)
         t.start()
 

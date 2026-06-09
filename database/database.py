@@ -1,5 +1,5 @@
-import sqlite3
 import os
+import sqlite3
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "tournament.db")
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema.sql")
@@ -48,6 +48,7 @@ def reset_db():
 
 if __name__ == "__main__":
     import sys
+
     command = sys.argv[1] if len(sys.argv) > 1 else "init"
 
     if command == "init":

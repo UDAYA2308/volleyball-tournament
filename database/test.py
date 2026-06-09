@@ -1,7 +1,8 @@
-import sqlite3
 import os
+import sqlite3
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "tournament.db")
+
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
@@ -9,21 +10,22 @@ def get_connection():
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
+
 def verify_data():
     conn = get_connection()
     cursor = conn.cursor()
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("1. TEAMS")
-    print("="*50)
+    print("=" * 50)
     cursor.execute("SELECT * FROM teams")
     teams = cursor.fetchall()
     for t in teams:
         print(dict(t))
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("2. PLAYERS PER TEAM")
-    print("="*50)
+    print("=" * 50)
     cursor.execute("""
         SELECT 
             t.name as team_name,
@@ -36,9 +38,9 @@ def verify_data():
     for c in counts:
         print(dict(c))
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("3. ALL PLAYERS WITH TEAM ASSIGNMENT")
-    print("="*50)
+    print("=" * 50)
     cursor.execute("""
         SELECT 
             p.id,
@@ -56,9 +58,9 @@ def verify_data():
     for p in players:
         print(dict(p))
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("4. SCHEDULE (ALL 10 LEAGUE FIXTURES)")
-    print("="*50)
+    print("=" * 50)
     cursor.execute("""
         SELECT 
             s.id,
@@ -77,9 +79,9 @@ def verify_data():
     for f in fixtures:
         print(dict(f))
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("5. DUPLICATE FIXTURE CHECK")
-    print("="*50)
+    print("=" * 50)
     cursor.execute("""
         SELECT 
             team_a_id, 
@@ -98,9 +100,9 @@ def verify_data():
     else:
         print("No duplicates found. ✓")
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("6. PLAYERS WITHOUT A TEAM")
-    print("="*50)
+    print("=" * 50)
     cursor.execute("""
         SELECT id, name FROM players WHERE team_id IS NULL
     """)
@@ -112,15 +114,16 @@ def verify_data():
     else:
         print("All players assigned to a team. ✓")
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("7. TOURNAMENT CONFIG")
-    print("="*50)
+    print("=" * 50)
     cursor.execute("SELECT * FROM tournament_config")
     config = cursor.fetchall()
     for c in config:
         print(dict(c))
 
     conn.close()
+
 
 if __name__ == "__main__":
     verify_data()

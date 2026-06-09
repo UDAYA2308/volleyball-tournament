@@ -1,13 +1,15 @@
-import sqlite3
-import requests
-import random
-import time
 import os
+import random
+import sqlite3
+import time
+
+import requests
 
 BASE_URL = "http://localhost:8003"
-DB_PATH  = os.path.join(os.path.dirname(__file__), "database", "tournament.db")
+DB_PATH = os.path.join(os.path.dirname(__file__), "database", "tournament.db")
 
 session = requests.Session()
+
 
 # ── HELPERS ───────────────────────────────────────────────────
 def db():
@@ -16,15 +18,18 @@ def db():
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
+
 def post(url, body=None):
     r = session.post(f"{BASE_URL}{url}", json=body)
     if r.status_code not in (200, 201):
         print(f"  ❌ POST {url} → {r.status_code}: {r.json()}")
     return r
 
+
 def get(url):
     r = session.get(f"{BASE_URL}{url}")
     return r
+
 
 def get_match_state(match_id):
     r = get(f"/matches/{match_id}")
@@ -32,30 +37,29 @@ def get_match_state(match_id):
         return None
     return r.json()
 
+
 def get_players_for_match(match_id):
     conn = db()
     match = conn.execute(
-        "SELECT team_a_id, team_b_id FROM matches WHERE id = ?",
-        (match_id,)
+        "SELECT team_a_id, team_b_id FROM matches WHERE id = ?", (match_id,)
     ).fetchone()
     if not match:
         conn.close()
         return [], [], None, None
     team_a_players = conn.execute(
-        "SELECT id FROM players WHERE team_id = ?",
-        (match["team_a_id"],)
+        "SELECT id FROM players WHERE team_id = ?", (match["team_a_id"],)
     ).fetchall()
     team_b_players = conn.execute(
-        "SELECT id FROM players WHERE team_id = ?",
-        (match["team_b_id"],)
+        "SELECT id FROM players WHERE team_id = ?", (match["team_b_id"],)
     ).fetchall()
     conn.close()
     return (
         [p["id"] for p in team_a_players],
         [p["id"] for p in team_b_players],
         match["team_a_id"],
-        match["team_b_id"]
+        match["team_b_id"],
     )
+
 
 def reset_match(match_id, schedule_id):
     conn = db()
@@ -64,19 +68,17 @@ def reset_match(match_id, schedule_id):
     conn.execute("DELETE FROM match_state WHERE match_id = ?", (match_id,))
     conn.execute(
         "UPDATE matches  SET status='pending', winner_team_id=NULL WHERE id=?",
-        (match_id,)
+        (match_id,),
     )
-    conn.execute(
-        "UPDATE schedule SET status='upcoming' WHERE id=?",
-        (schedule_id,)
-    )
+    conn.execute("UPDATE schedule SET status='upcoming' WHERE id=?", (schedule_id,))
     conn.commit()
     conn.close()
 
+
 # ── PLAY ONE SET ──────────────────────────────────────────────
-def play_set(match_id, team_a_id, team_b_id,
-             team_a_players, team_b_players,
-             target_a, target_b):
+def play_set(
+    match_id, team_a_id, team_b_id, team_a_players, team_b_players, target_a, target_b
+):
     """
     Play a set until target_a and target_b scores are reached.
     Always reads current state from API before each rally.
@@ -92,13 +94,13 @@ def play_set(match_id, team_a_id, team_b_id,
             print("  ❌ Could not get match state")
             return False
 
-        match_state  = state.get("state", {})
+        match_state = state.get("state", {})
         if not match_state:
             print("  ❌ No match state found")
             return False
 
         serving_team = match_state.get("serving_team_id")
-        has_server   = match_state.get("current_server_id")
+        has_server = match_state.get("current_server_id")
 
         # Select server if needed
         if not has_server:
@@ -113,17 +115,14 @@ def play_set(match_id, team_a_id, team_b_id,
                 else:
                     server = random.choice(team_b_players)
 
-            r = post(
-                f"/matches/{match_id}/select-server",
-                {"player_id": server}
-            )
+            r = post(f"/matches/{match_id}/select-server", {"player_id": server})
             if r.status_code != 200:
                 print(f"  ❌ select-server failed: {r.json()}")
                 return False
 
             # Re-read after server selection
-            state        = get_match_state(match_id)
-            match_state  = state.get("state", {})
+            state = get_match_state(match_id)
+            match_state = state.get("state", {})
             serving_team = match_state.get("serving_team_id")
 
         # Decide who scores this rally
@@ -135,15 +134,12 @@ def play_set(match_id, team_a_id, team_b_id,
         elif need_b == 0:
             scorer = team_a_id
         else:
-            total  = need_a + need_b
+            total = need_a + need_b
             prob_a = need_a / total
             scorer = team_a_id if random.random() < prob_a else team_b_id
 
         # Record point
-        r = post(
-            f"/matches/{match_id}/point",
-            {"team_id": scorer}
-        )
+        r = post(f"/matches/{match_id}/point", {"team_id": scorer})
         if r.status_code != 200:
             print(f"  ❌ point failed: {r.json()}")
             return False
@@ -177,8 +173,9 @@ def simulate_match(schedule_id, match_id, result="2-0"):
 
     reset_match(match_id, schedule_id)
 
-    team_a_players, team_b_players, team_a_id, team_b_id = \
-        get_players_for_match(match_id)
+    team_a_players, team_b_players, team_a_id, team_b_id = get_players_for_match(
+        match_id
+    )
 
     if not team_a_players or not team_b_players:
         print(f"  ❌ Could not get players for match {match_id}")
@@ -192,50 +189,60 @@ def simulate_match(schedule_id, match_id, result="2-0"):
 
     if result == "2-0":
         s1_b = random.randint(8, 18)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, 21, s1_b):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, 21, s1_b
+        ):
             return False
         s2_b = random.randint(8, 18)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, 21, s2_b):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, 21, s2_b
+        ):
             return False
 
     elif result == "0-2":
         s1_a = random.randint(8, 18)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, s1_a, 21):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, s1_a, 21
+        ):
             return False
         s2_a = random.randint(8, 18)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, s2_a, 21):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, s2_a, 21
+        ):
             return False
 
     elif result == "2-1":
         s1_b = random.randint(10, 18)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, 21, s1_b):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, 21, s1_b
+        ):
             return False
         s2_a = random.randint(10, 18)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, s2_a, 21):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, s2_a, 21
+        ):
             return False
         s3_b = random.randint(6, 12)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, 15, s3_b):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, 15, s3_b
+        ):
             return False
 
     elif result == "1-2":
         s1_a = random.randint(10, 18)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, s1_a, 21):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, s1_a, 21
+        ):
             return False
         s2_b = random.randint(10, 18)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, 21, s2_b):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, 21, s2_b
+        ):
             return False
         s3_a = random.randint(6, 12)
-        if not play_set(match_id, team_a_id, team_b_id,
-                        team_a_players, team_b_players, s3_a, 15):
+        if not play_set(
+            match_id, team_a_id, team_b_id, team_a_players, team_b_players, s3_a, 15
+        ):
             return False
 
     print(f"  ✅ Match {match_id} complete")
@@ -245,9 +252,9 @@ def simulate_match(schedule_id, match_id, result="2-0"):
 # ── VERIFY RESULTS ────────────────────────────────────────────
 def verify_results():
     conn = db()
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("FINAL RESULTS")
-    print("="*60)
+    print("=" * 60)
 
     print("\n--- MATCHES ---")
     for r in conn.execute("""
@@ -262,8 +269,10 @@ def verify_results():
         ORDER BY m.id
     """):
         status = "✅" if r["status"] == "completed" else "❌"
-        print(f"  {status} Match {r['id']}: {r['team_a']} vs {r['team_b']}"
-              f" → Winner: {r['winner'] or 'none'}")
+        print(
+            f"  {status} Match {r['id']}: {r['team_a']} vs {r['team_b']}"
+            f" → Winner: {r['winner'] or 'none'}"
+        )
 
     print("\n--- LEADERBOARD ---")
     for r in conn.execute("""
@@ -277,13 +286,15 @@ def verify_results():
             matches_lost, total_points, sets_won, total_point_diff
         FROM leaderboard
     """):
-        print(f"  #{r['rank']} {r['team_name']:<12} "
-              f"P={r['matches_played']} "
-              f"W={r['matches_won']} "
-              f"L={r['matches_lost']} "
-              f"Pts={round(r['total_points'], 2):<6} "
-              f"Sets={r['sets_won']} "
-              f"Diff={r['total_point_diff']}")
+        print(
+            f"  #{r['rank']} {r['team_name']:<12} "
+            f"P={r['matches_played']} "
+            f"W={r['matches_won']} "
+            f"L={r['matches_lost']} "
+            f"Pts={round(r['total_points'], 2):<6} "
+            f"Sets={r['sets_won']} "
+            f"Diff={r['total_point_diff']}"
+        )
 
     print("\n--- PLAYER STATS (top 5 by serves) ---")
     for r in conn.execute("""
@@ -294,10 +305,12 @@ def verify_results():
         ORDER BY total_serves DESC
         LIMIT 5
     """):
-        print(f"  {r['player_name']:<25} ({r['team_name']:<10}) "
-              f"serves={r['total_serves']:>3} "
-              f"won={r['serve_points_won']:>3} "
-              f"rate={r['serve_conversion_rate']}%")
+        print(
+            f"  {r['player_name']:<25} ({r['team_name']:<10}) "
+            f"serves={r['total_serves']:>3} "
+            f"won={r['serve_points_won']:>3} "
+            f"rate={r['serve_conversion_rate']}%"
+        )
 
     conn.close()
 
@@ -313,24 +326,24 @@ def verify_results():
 # ════════════════════════════════════════════════════════════
 MATCH_PLAN = [
     # (schedule_id, match_id, result)
-    (1,  1,  "2-0"),   # Team 1 beats Team 2
-    (2,  2,  "2-0"),   # Team 3 beats Team 4
-    (3,  3,  "2-1"),   # Team 1 beats Team 3
-    (4,  4,  "2-0"),   # Team 2 beats Team 5
-    (5,  5,  "2-0"),   # Team 1 beats Team 4
-    (6,  6,  "1-2"),   # Team 5 beats Team 3
-    (7,  7,  "2-1"),   # Team 1 beats Team 5
-    (8,  8,  "2-1"),   # Team 2 beats Team 4
-    (9,  9,  "0-2"),   # Team 3 beats Team 2
-    (10, 10, "2-0"),   # Team 4 beats Team 5
+    (1, 1, "2-0"),  # Team 1 beats Team 2
+    (2, 2, "2-0"),  # Team 3 beats Team 4
+    (3, 3, "2-1"),  # Team 1 beats Team 3
+    (4, 4, "2-0"),  # Team 2 beats Team 5
+    (5, 5, "2-0"),  # Team 1 beats Team 4
+    (6, 6, "1-2"),  # Team 5 beats Team 3
+    (7, 7, "2-1"),  # Team 1 beats Team 5
+    (8, 8, "2-1"),  # Team 2 beats Team 4
+    (9, 9, "0-2"),  # Team 3 beats Team 2
+    (10, 10, "2-0"),  # Team 4 beats Team 5
 ]
 
 if __name__ == "__main__":
-    print("="*60)
+    print("=" * 60)
     print("SIMULATING ALL 10 LEAGUE MATCHES")
-    print("="*60)
+    print("=" * 60)
 
-    start   = time.time()
+    start = time.time()
     success = 0
 
     for schedule_id, match_id, result in MATCH_PLAN:
@@ -343,8 +356,10 @@ if __name__ == "__main__":
 
     elapsed = time.time() - start
     print(f"\n{'='*60}")
-    print(f"{'✅' if success == len(MATCH_PLAN) else '❌'} "
-          f"{success}/{len(MATCH_PLAN)} matches completed in {elapsed:.1f}s")
+    print(
+        f"{'✅' if success == len(MATCH_PLAN) else '❌'} "
+        f"{success}/{len(MATCH_PLAN)} matches completed in {elapsed:.1f}s"
+    )
 
     if success == len(MATCH_PLAN):
         verify_results()

@@ -1,13 +1,15 @@
-import sys
 import os
+import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
+
+import asyncio
 
 from fastapi import APIRouter, HTTPException
-from database.database import get_connection
+
 from backend.broadcaster import manager
 from backend.routers.live import get_all_live_payload
-import asyncio
+from database.database import get_connection
 
 router = APIRouter(prefix="/playoffs", tags=["Playoffs"])
 
@@ -16,12 +18,13 @@ router = APIRouter(prefix="/playoffs", tags=["Playoffs"])
 def broadcast_global():
     try:
         from backend.main import app
+
         loop = app.state.loop
         asyncio.run_coroutine_threadsafe(
             manager.broadcast_global(
                 {"event": "update", "data": get_all_live_payload()}
             ),
-            loop
+            loop,
         )
     except Exception as e:
         print(f"[WS] Broadcast error: {e}")
@@ -96,7 +99,8 @@ def get_bracket():
         # Attach set scores to each bracket match
         for entry in bracket:
             if entry["match_id"]:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT
                         s.set_number,
                         s.status,
@@ -107,14 +111,18 @@ def get_bracket():
                     LEFT JOIN set_scores ss ON ss.set_id = s.id
                     WHERE s.match_id = ?
                     ORDER BY s.set_number
-                """, (entry["match_id"],))
+                """,
+                    (entry["match_id"],),
+                )
                 entry["sets"] = [dict(s) for s in cursor.fetchall()]
                 entry["team_a_sets_won"] = sum(
-                    1 for s in entry["sets"]
+                    1
+                    for s in entry["sets"]
                     if s["winner_team_id"] == entry["team_a_id"]
                 )
                 entry["team_b_sets_won"] = sum(
-                    1 for s in entry["sets"]
+                    1
+                    for s in entry["sets"]
                     if s["winner_team_id"] == entry["team_b_id"]
                 )
             else:
@@ -123,9 +131,9 @@ def get_bracket():
                 entry["team_b_sets_won"] = 0
 
         return {
-            "stage":            config["stage"],
+            "stage": config["stage"],
             "league_locked_at": config["league_locked_at"],
-            "bracket":          bracket
+            "bracket": bracket,
         }
     finally:
         conn.close()
@@ -143,7 +151,7 @@ def generate_playoffs():
         if config["stage"] != "league":
             raise HTTPException(
                 status_code=400,
-                detail=f"Playoffs already generated. Stage: {config['stage']}"
+                detail=f"Playoffs already generated. Stage: {config['stage']}",
             )
 
         # Check all league matches are completed
@@ -152,7 +160,7 @@ def generate_playoffs():
             raise HTTPException(
                 status_code=400,
                 detail=f"Cannot generate playoffs. "
-                       f"{counts['completed']}/{counts['total']} league matches completed."
+                f"{counts['completed']}/{counts['total']} league matches completed.",
             )
 
         # Get top 4 from leaderboard
@@ -160,7 +168,7 @@ def generate_playoffs():
         if len(top4) < 4:
             raise HTTPException(
                 status_code=400,
-                detail="Not enough teams in leaderboard to generate playoffs"
+                detail="Not enough teams in leaderboard to generate playoffs",
             )
 
         rank1 = top4[0]["team_id"]
@@ -169,17 +177,23 @@ def generate_playoffs():
         rank4 = top4[3]["team_id"]
 
         # Create Qualifier 1: Rank 1 vs Rank 2
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO schedule (team_a_id, team_b_id, match_type, status)
             VALUES (?, ?, 'qualifier_1', 'upcoming')
-        """, (rank1, rank2))
+        """,
+            (rank1, rank2),
+        )
         q1_schedule_id = cursor.lastrowid
 
         # Create Eliminator: Rank 3 vs Rank 4
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO schedule (team_a_id, team_b_id, match_type, status)
             VALUES (?, ?, 'eliminator', 'upcoming')
-        """, (rank3, rank4))
+        """,
+            (rank3, rank4),
+        )
         elim_schedule_id = cursor.lastrowid
 
         # Create Qualifier 2 placeholder: teams TBD
@@ -195,15 +209,21 @@ def generate_playoffs():
         """)
 
         # Create match rows for Q1 and Eliminator immediately
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO matches (schedule_id, team_a_id, team_b_id, status)
             VALUES (?, ?, ?, 'pending')
-        """, (q1_schedule_id, rank1, rank2))
+        """,
+            (q1_schedule_id, rank1, rank2),
+        )
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO matches (schedule_id, team_a_id, team_b_id, status)
             VALUES (?, ?, ?, 'pending')
-        """, (elim_schedule_id, rank3, rank4))
+        """,
+            (elim_schedule_id, rank3, rank4),
+        )
 
         # Lock the league stage
         cursor.execute("""
@@ -220,14 +240,14 @@ def generate_playoffs():
             "message": "Playoffs generated successfully",
             "qualifier_1": {
                 "team_a": top4[0]["team_name"],
-                "team_b": top4[1]["team_name"]
+                "team_b": top4[1]["team_name"],
             },
             "eliminator": {
                 "team_a": top4[2]["team_name"],
-                "team_b": top4[3]["team_name"]
+                "team_b": top4[3]["team_name"],
             },
             "qualifier_2": "TBD",
-            "final":       "TBD"
+            "final": "TBD",
         }
     finally:
         conn.close()
@@ -241,25 +261,25 @@ def advance_bracket(match_id: int):
         cursor = conn.cursor()
 
         # Get the completed match
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT m.*, s.match_type, s.id as schedule_id
             FROM matches m
             JOIN schedule s ON s.id = m.schedule_id
             WHERE m.id = ?
-        """, (match_id,))
+        """,
+            (match_id,),
+        )
         match = cursor.fetchone()
 
         if not match:
             raise HTTPException(status_code=404, detail="Match not found")
         if match["status"] != "completed":
-            raise HTTPException(
-                status_code=400,
-                detail="Match is not completed yet"
-            )
+            raise HTTPException(status_code=400, detail="Match is not completed yet")
 
-        match_type   = match["match_type"]
-        winner_id    = match["winner_team_id"]
-        loser_id     = (
+        match_type = match["match_type"]
+        winner_id = match["winner_team_id"]
+        loser_id = (
             match["team_b_id"]
             if winner_id == match["team_a_id"]
             else match["team_a_id"]
@@ -268,15 +288,21 @@ def advance_bracket(match_id: int):
         if match_type == "qualifier_1":
             # Winner → Final team_a
             # Loser  → Qualifier 2 team_a
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE schedule SET team_a_id = ?
                 WHERE match_type = 'final'
-            """, (winner_id,))
+            """,
+                (winner_id,),
+            )
 
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE schedule SET team_a_id = ?
                 WHERE match_type = 'qualifier_2'
-            """, (loser_id,))
+            """,
+                (loser_id,),
+            )
 
             # Check if Qualifier 2 has both teams
             _maybe_create_match(cursor, "qualifier_2")
@@ -284,20 +310,26 @@ def advance_bracket(match_id: int):
         elif match_type == "eliminator":
             # Winner → Qualifier 2 team_b
             # Loser  → eliminated (no action needed)
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE schedule SET team_b_id = ?
                 WHERE match_type = 'qualifier_2'
-            """, (winner_id,))
+            """,
+                (winner_id,),
+            )
 
             # Check if Qualifier 2 has both teams
             _maybe_create_match(cursor, "qualifier_2")
 
         elif match_type == "qualifier_2":
             # Winner → Final team_b
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE schedule SET team_b_id = ?
                 WHERE match_type = 'final'
-            """, (winner_id,))
+            """,
+                (winner_id,),
+            )
 
             # Check if Final has both teams
             _maybe_create_match(cursor, "final")
@@ -312,10 +344,10 @@ def advance_bracket(match_id: int):
         broadcast_global()
 
         return {
-            "message":    f"{match_type} advanced successfully",
-            "winner_id":  winner_id,
-            "loser_id":   loser_id,
-            "match_type": match_type
+            "message": f"{match_type} advanced successfully",
+            "winner_id": winner_id,
+            "loser_id": loser_id,
+            "match_type": match_type,
         }
     finally:
         conn.close()
@@ -323,10 +355,13 @@ def advance_bracket(match_id: int):
 
 def _maybe_create_match(cursor, match_type: str):
     """Create a match row once both teams are assigned to a playoff fixture."""
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT * FROM schedule
         WHERE match_type = ?
-    """, (match_type,))
+    """,
+        (match_type,),
+    )
     schedule = cursor.fetchone()
 
     if not schedule:
@@ -335,17 +370,23 @@ def _maybe_create_match(cursor, match_type: str):
         return
 
     # Check if match already exists
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT id FROM matches WHERE schedule_id = ?
-    """, (schedule["id"],))
+    """,
+        (schedule["id"],),
+    )
     if cursor.fetchone():
         return
 
     # Create the match
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO matches (schedule_id, team_a_id, team_b_id, status)
         VALUES (?, ?, ?, 'pending')
-    """, (schedule["id"], schedule["team_a_id"], schedule["team_b_id"]))
+    """,
+        (schedule["id"], schedule["team_a_id"], schedule["team_b_id"]),
+    )
 
 
 # ── GET TOURNAMENT STATUS ─────────────────────────────────────
@@ -359,14 +400,13 @@ def get_tournament_status():
         counts = count_league_matches(cursor)
 
         return {
-            "stage":              config["stage"],
-            "league_locked_at":   config["league_locked_at"],
+            "stage": config["stage"],
+            "league_locked_at": config["league_locked_at"],
             "league_matches_done": counts["completed"],
             "league_matches_total": counts["total"],
             "ready_for_playoffs": (
-                counts["completed"] == counts["total"]
-                and config["stage"] == "league"
-            )
+                counts["completed"] == counts["total"] and config["stage"] == "league"
+            ),
         }
     finally:
         conn.close()

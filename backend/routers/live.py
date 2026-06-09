@@ -1,11 +1,12 @@
-import sys
 import os
+import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from database.database import get_connection
+
 from backend.broadcaster import manager
+from database.database import get_connection
 
 router = APIRouter(tags=["Live"])
 
@@ -16,13 +17,17 @@ def get_match_live_payload(match_id: int) -> dict:
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT * FROM live_match_view WHERE match_id = ?
-        """, (match_id,))
+        """,
+            (match_id,),
+        )
         row = cursor.fetchone()
         if not row:
             # Match exists but may be completed — fetch basic state
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT
                     m.id            AS match_id,
                     m.status        AS match_status,
@@ -41,7 +46,9 @@ def get_match_live_payload(match_id: int) -> dict:
                 JOIN teams tb    ON tb.id = m.team_b_id
                 LEFT JOIN match_state ms ON ms.match_id = m.id
                 WHERE m.id = ?
-            """, (match_id,))
+            """,
+                (match_id,),
+            )
             row = cursor.fetchone()
         return dict(row) if row else {}
     finally:
@@ -67,12 +74,14 @@ async def websocket_match(websocket: WebSocket, match_id: int):
     try:
         # Send current state immediately on connect
         payload = get_match_live_payload(match_id)
-        await websocket.send_json({
-            "event": "connected",
-            "match_id": match_id,
-            "viewers": manager.match_viewer_count(match_id),
-            "data": payload
-        })
+        await websocket.send_json(
+            {
+                "event": "connected",
+                "match_id": match_id,
+                "viewers": manager.match_viewer_count(match_id),
+                "data": payload,
+            }
+        )
 
         # Keep connection alive — listen for disconnects
         while True:
@@ -91,11 +100,13 @@ async def websocket_global(websocket: WebSocket):
     try:
         # Send current state immediately on connect
         payload = get_all_live_payload()
-        await websocket.send_json({
-            "event": "connected",
-            "viewers": manager.global_viewer_count(),
-            "data": payload
-        })
+        await websocket.send_json(
+            {
+                "event": "connected",
+                "viewers": manager.global_viewer_count(),
+                "data": payload,
+            }
+        )
 
         while True:
             await websocket.receive_text()
@@ -110,5 +121,5 @@ def get_viewer_count(match_id: int):
     return {
         "match_id": match_id,
         "match_viewers": manager.match_viewer_count(match_id),
-        "global_viewers": manager.global_viewer_count()
+        "global_viewers": manager.global_viewer_count(),
     }

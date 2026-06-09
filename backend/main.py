@@ -1,22 +1,19 @@
-import sys
 import os
+import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database.database import init_db
-from backend.routers import teams
+
 # add this import at the top with the other routers
-from backend.routers import schedule
+from backend.routers import schedule, teams
+from database.database import init_db
 
 # add this line after app.include_router(teams.router)
 
 
-app = FastAPI(
-    title="Volleyball Tournament API",
-    version="1.0.0"
-)
+app = FastAPI(title="Volleyball Tournament API", version="1.0.0")
 
 # ── CORS ──────────────────────────────────────────────────────
 # During development allow all origins
@@ -30,6 +27,7 @@ app.add_middleware(
 )
 
 import asyncio
+
 
 @app.on_event("startup")
 async def on_startup():
@@ -52,7 +50,9 @@ from backend.routers import live
 app.include_router(live.router)
 
 from backend.routers import playoffs
+
 app.include_router(playoffs.router)
+
 
 # ── HEALTH CHECK ──────────────────────────────────────────────
 @app.get("/")

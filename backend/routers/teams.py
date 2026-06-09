@@ -1,9 +1,10 @@
-import sys
 import os
+import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 from fastapi import APIRouter, HTTPException
+
 from database.database import get_connection
 
 router = APIRouter(prefix="/teams", tags=["Teams"])
@@ -45,7 +46,8 @@ def get_team(team_id: int):
             raise HTTPException(status_code=404, detail="Team not found")
 
         # Get roster
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT 
                 id,
                 name,
@@ -57,13 +59,12 @@ def get_team(team_id: int):
             FROM players
             WHERE team_id = ?
             ORDER BY name
-        """, (team_id,))
+        """,
+            (team_id,),
+        )
         players = cursor.fetchall()
 
-        return {
-            **dict(team),
-            "players": [dict(p) for p in players]
-        }
+        return {**dict(team), "players": [dict(p) for p in players]}
     finally:
         conn.close()
 
@@ -118,9 +119,12 @@ def get_player_stat(player_id: int):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT * FROM player_stats WHERE player_id = ?
-        """, (player_id,))
+        """,
+            (player_id,),
+        )
         row = cursor.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Player not found")
