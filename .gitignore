@@ -1,4 +1,8 @@
 database/tournament.db
 matches.json
+data.csv
+teams.json
 .idea/
 frontend/.env
+**/__pycache__/
+*.pyc
