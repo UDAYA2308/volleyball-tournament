@@ -675,11 +675,11 @@ def get_match_history(match_id: int):
 
 # ── ABANDON MATCH ─────────────────────────────────────────────
 @router.post("/{match_id}/abandon")
+@router.post("/{match_id}/abandon")
 def abandon_match(match_id: int):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-
         cursor.execute("SELECT * FROM matches WHERE id = ?", (match_id,))
         match = cursor.fetchone()
         if not match:
@@ -689,21 +689,40 @@ def abandon_match(match_id: int):
                 status_code=400, detail="Only live matches can be abandoned"
             )
 
+        # ── DELETE IN CORRECT ORDER (respect foreign keys) ──
+        # 1. Rallies first (references sets)
         cursor.execute(
-            "UPDATE matches SET status = 'abandoned' WHERE id = ?", (match_id,)
+            "DELETE FROM rallies WHERE match_id = ?", (match_id,)
         )
+        # 2. Match state (references sets)
         cursor.execute(
-            "UPDATE schedule SET status = 'upcoming' WHERE id = ?",
-            (match["schedule_id"],),
+            "DELETE FROM match_state WHERE match_id = ?", (match_id,)
         )
-        cursor.execute("""
-            UPDATE match_state
-            SET status = 'completed', last_updated = CURRENT_TIMESTAMP
-            WHERE match_id = ?
-        """, (match_id,))
+        # 3. Sets (references matches)
+        cursor.execute(
+            "DELETE FROM sets WHERE match_id = ?", (match_id,)
+        )
+        # 4. Reset match to pending
+        cursor.execute(
+            """
+            UPDATE matches
+            SET status = 'pending', winner_team_id = NULL
+            WHERE id = ?
+            """,
+            (match_id,)
+        )
+        # 5. Reset schedule to upcoming
+        cursor.execute(
+            """
+            UPDATE schedule SET status = 'upcoming' WHERE id = ?
+            """,
+            (match["schedule_id"],)
+        )
 
         conn.commit()
         broadcast_update(match_id)
-        return {"message": "Match abandoned. Schedule entry reset to upcoming."}
+        return {
+            "message": "Match abandoned and fully reset. Ready to start again."
+        }
     finally:
         conn.close()
