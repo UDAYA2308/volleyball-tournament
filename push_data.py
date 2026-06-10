@@ -55,7 +55,7 @@ def push_data():
                 experience = row.get("Have you played volleyball before? ")
                 position = row.get("Which position do you play best?")
 
-                captain_val = row.get("Are you willing to be a captain?")
+                captain_val = row.get("Are you willing to be a captain? ")
                 captain_willing = (
                     1 if captain_val and captain_val.lower() in ["yes", "maybe"] else 0
                 )
