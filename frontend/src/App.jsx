@@ -1,18 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
-import Navbar              from './components/Navbar'
-import Home                from './pages/Home'
-import Leaderboard         from './pages/Leaderboard'
-import MatchViewer         from './pages/MatchViewer'
-import MatchHistory        from './pages/MatchHistory'
-import AdminLogin          from './pages/admin/AdminLogin'
-import AdminMatchControl   from './pages/admin/AdminMatchControl'
-import AdminPlayoffs       from './pages/admin/AdminPlayoffs'
-import PlayerStats      from     './pages/PlayerStats'
-import Teams from './pages/Teams'
-import Playoffs from './pages/Playoffs'
-
-
+import { AuthProvider, useAuth }   from './context/AuthContext'
+import { ThemeProvider }           from './context/ThemeContext'
+import Navbar                      from './components/Navbar'
+import Home                        from './pages/Home'
+import Leaderboard                 from './pages/Leaderboard'
+import MatchViewer                 from './pages/MatchViewer'
+import MatchHistory                from './pages/MatchHistory'
+import AdminLogin                  from './pages/admin/AdminLogin'
+import AdminMatchControl           from './pages/admin/AdminMatchControl'
+import AdminPlayoffs               from './pages/admin/AdminPlayoffs'
+import PlayerStats                 from './pages/PlayerStats'
+import Teams                       from './pages/Teams'
+import Playoffs                    from './pages/Playoffs'
 
 function ProtectedRoute({ children }) {
   const { isAdmin } = useAuth()
@@ -21,15 +20,16 @@ function ProtectedRoute({ children }) {
 
 function AppRoutes() {
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
+    <div className="min-h-screen bg-theme-primary text-theme-primary
+                    transition-colors duration-200">
       <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-6">
         <Routes>
           <Route path="/"                   element={<Home />} />
-          <Route path="/teams" element={<Teams />} />
-          <Route path="/players"             element={<PlayerStats />} />
+          <Route path="/teams"              element={<Teams />} />
+          <Route path="/players"            element={<PlayerStats />} />
           <Route path="/leaderboard"        element={<Leaderboard />} />
-          <Route path="/playoffs" element={<Playoffs />} />
+          <Route path="/playoffs"           element={<Playoffs />} />
           <Route path="/match/:id"          element={<MatchViewer />} />
           <Route path="/match/:id/history"  element={<MatchHistory />} />
           <Route path="/admin"              element={<AdminLogin />} />
@@ -48,9 +48,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </ThemeProvider>
     </AuthProvider>
   )
 }

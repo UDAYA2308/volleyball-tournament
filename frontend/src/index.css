@@ -1,1 +1,59 @@
 @import "tailwindcss";
+
+/* ── COLOR TOKENS ─────────────────────────────────────────── */
+:root {
+  --bg-primary:     #f0f4f8;
+  --bg-card:        #ffffff;
+  --bg-input:       #e8edf2;
+  --bg-hover:       #dce3ea;
+  --text-primary:   #0f1923;
+  --text-secondary: #4a5568;
+  --border:         #d5dce5;
+}
+
+:root.dark {
+  --bg-primary:     #0d1117;
+  --bg-card:        #161b22;
+  --bg-input:       #21262d;
+  --bg-hover:       #292f38;
+  --text-primary:   #f0f6fc;
+  --text-secondary: #8b949e;
+  --border:         #30363d;
+}
+
+/* ── BASE ─────────────────────────────────────────────────── */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.25s ease, color 0.25s ease;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── SCORE & NUMBER FONT ──────────────────────────────────── */
+.tabular-nums,
+.font-mono {
+  font-family: 'Outfit', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── BACKGROUND UTILITIES ─────────────────────────────────── */
+.bg-theme-primary { background-color: var(--bg-primary); }
+.bg-theme-card    { background-color: var(--bg-card);    }
+.bg-theme-input   { background-color: var(--bg-input);   }
+.bg-theme-hover   { background-color: var(--bg-hover);   }
+
+/* ── TEXT UTILITIES ───────────────────────────────────────── */
+.text-theme-primary   { color: var(--text-primary);   }
+.text-theme-secondary { color: var(--text-secondary); }
+
+/* ── BORDER UTILITIES ─────────────────────────────────────── */
+.border-theme { border-color: var(--border); }
+
+/* ── HOVER UTILITY ────────────────────────────────────────── */
+.hover-theme:hover { background-color: var(--bg-hover); }
+
+/* ── DIVIDER ──────────────────────────────────────────────── */
+.divide-theme > * + * { border-color: var(--border); }

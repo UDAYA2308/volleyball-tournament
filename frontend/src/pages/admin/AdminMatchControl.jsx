@@ -117,13 +117,13 @@ export default function AdminMatchControl() {
       <div className="flex flex-col items-center gap-3">
         <div className="w-5 h-5 rounded-full border-2 border-blue-500
                         border-t-transparent animate-spin" />
-        <p className="text-slate-300 text-sm">Loading...</p>
+        <p className="text-sm text-theme-secondary">Loading...</p>
       </div>
     </div>
   )
 
   if (!match) return (
-    <div className="text-center text-slate-300 py-20">
+    <div className="text-center py-20 text-theme-secondary">
       Match not found
     </div>
   )
@@ -136,7 +136,6 @@ export default function AdminMatchControl() {
   const isCompleted  = match.status === 'completed'
   const hasServer    = !!state?.current_server_id
   const servingTeam  = state?.serving_team_id
-
   const teamAPlayers = rosters.filter(p => p.team_id === match.team_a_id)
   const teamBPlayers = rosters.filter(p => p.team_id === match.team_b_id)
   const currentSet   = sets[sets.length - 1]
@@ -159,10 +158,10 @@ export default function AdminMatchControl() {
       )}
 
       {/* Header scoreboard */}
-      <div className="bg-slate-800 rounded-2xl border border-slate-600 p-4">
+      <div className="bg-theme-card rounded-2xl border border-theme p-4">
         <div className="flex items-center justify-between mb-4">
           <span className="text-xs font-bold uppercase tracking-wider
-                           text-slate-300">
+                           text-theme-secondary">
             {match.match_type === 'league'
               ? `Round ${match.round_number}`
               : match.match_type?.replace('_', ' ').toUpperCase()}
@@ -172,17 +171,18 @@ export default function AdminMatchControl() {
 
         {/* Team names + sets won */}
         <div className="grid grid-cols-3 items-center gap-2 text-center">
-          <div className="font-black text-white text-lg sm:text-xl
-                          md:text-2xl leading-tight">
+          <div className="font-black text-lg sm:text-xl md:text-2xl
+                          leading-tight text-theme-primary">
             {match.team_a_name}
           </div>
-          <div className="text-2xl font-black text-slate-400 tabular-nums">
+          <div className="text-2xl font-black tabular-nums
+                          text-theme-secondary">
             {sets.filter(s => s.winner_team_id === match.team_a_id).length}
             {' : '}
             {sets.filter(s => s.winner_team_id === match.team_b_id).length}
           </div>
-          <div className="font-black text-white text-lg sm:text-xl
-                          md:text-2xl leading-tight">
+          <div className="font-black text-lg sm:text-xl md:text-2xl
+                          leading-tight text-theme-primary">
             {match.team_b_name}
           </div>
         </div>
@@ -191,19 +191,19 @@ export default function AdminMatchControl() {
         {isLive && currentSet && (
           <div className="mt-4 text-center">
             <div className="flex items-center justify-center gap-4">
-              <span className="text-5xl font-black tabular-nums text-white
-                               w-16 text-right">
+              <span className="text-5xl font-black tabular-nums w-16
+                               text-right text-theme-primary">
                 {currentSet.team_a_score}
               </span>
-              <span className="text-3xl font-black text-slate-400">
+              <span className="text-3xl font-black text-theme-secondary">
                 –
               </span>
-              <span className="text-5xl font-black tabular-nums text-white
-                               w-16 text-left">
+              <span className="text-5xl font-black tabular-nums w-16
+                               text-left text-theme-primary">
                 {currentSet.team_b_score}
               </span>
             </div>
-            <div className="mt-1 text-slate-300 text-xs font-semibold">
+            <div className="mt-1 text-xs font-semibold text-theme-secondary">
               Set {currentSet.set_number}
               {' · '}
               first to {currentSet.set_number === 3 ? 15 : 21}, win by 2
@@ -217,7 +217,7 @@ export default function AdminMatchControl() {
             {hasServer ? (
               <span className="text-blue-400 font-semibold">
                 🏐 Serving:{' '}
-                <strong className="text-white">
+                <strong className="text-theme-primary">
                   {state.server_name}
                 </strong>
                 {' '}({state.serving_team_name})
@@ -249,12 +249,12 @@ export default function AdminMatchControl() {
         <div className="bg-yellow-500/10 border border-yellow-500/40
                         rounded-xl p-6 text-center space-y-2">
           <div className="text-2xl">🏆</div>
-          <div className="text-white font-black text-lg">
+          <div className="font-black text-lg text-theme-primary">
             Match Complete
           </div>
-          <div className="text-slate-300 text-sm font-semibold">
+          <div className="text-sm font-semibold text-theme-secondary">
             Winner:{' '}
-            <span className="text-white font-bold">
+            <span className="font-bold text-theme-primary">
               {match.winner_team_id === match.team_a_id
                 ? match.team_a_name
                 : match.team_b_name}
@@ -263,9 +263,9 @@ export default function AdminMatchControl() {
           <button
             onClick={handleUndo}
             disabled={acting}
-            className="mt-3 bg-slate-700 hover:bg-slate-600
-                       disabled:opacity-50 text-white px-4 py-2
-                       rounded-lg text-sm transition-colors font-semibold"
+            className="mt-3 bg-theme-input disabled:opacity-50
+                       text-theme-primary px-4 py-2 rounded-lg text-sm
+                       transition-colors font-semibold hover-theme"
           >
             ↩ Undo Last Point
           </button>
@@ -290,23 +290,23 @@ export default function AdminMatchControl() {
             <button
               onClick={() => handlePoint(match.team_b_id)}
               disabled={acting || !hasServer}
-              className="bg-orange-600 hover:bg-orange-500 disabled:opacity-40
-                         disabled:cursor-not-allowed text-white font-black
-                         py-6 rounded-xl text-base sm:text-lg
-                         transition-colors active:scale-95"
+              className="bg-orange-600 hover:bg-orange-500
+                         disabled:opacity-40 disabled:cursor-not-allowed
+                         text-white font-black py-6 rounded-xl
+                         text-base sm:text-lg transition-colors
+                         active:scale-95"
             >
               +1 {match.team_b_name}
             </button>
           </div>
 
           {/* Server Selection */}
-          <div className="bg-slate-800 rounded-xl border border-slate-600 p-4">
-            <h3 className="text-xs font-bold text-slate-300 uppercase
-                           tracking-wider mb-3">
+          <div className="bg-theme-card rounded-xl border border-theme p-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider
+                           mb-3 text-theme-secondary">
               Select Server
             </h3>
             <div className="grid grid-cols-2 gap-3">
-
               {/* Team A Players */}
               <div className="space-y-2">
                 <div className="text-xs font-bold text-blue-400 mb-2
@@ -327,8 +327,8 @@ export default function AdminMatchControl() {
                         ${isServing
                           ? 'bg-blue-600 text-white'
                           : canSelect
-                          ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                          : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                          ? 'bg-theme-input text-theme-primary hover-theme'
+                          : 'bg-theme-input text-theme-secondary opacity-40 cursor-not-allowed'
                         }`}
                     >
                       {player.name}
@@ -358,8 +358,8 @@ export default function AdminMatchControl() {
                         ${isServing
                           ? 'bg-orange-600 text-white'
                           : canSelect
-                          ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                          : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                          ? 'bg-theme-input text-theme-primary hover-theme'
+                          : 'bg-theme-input text-theme-secondary opacity-40 cursor-not-allowed'
                         }`}
                     >
                       {player.name}
@@ -373,10 +373,10 @@ export default function AdminMatchControl() {
 
           {/* Set History */}
           {sets.length > 0 && (
-            <div className="bg-slate-800 rounded-xl border border-slate-600
+            <div className="bg-theme-card rounded-xl border border-theme
                             p-4">
-              <h3 className="text-xs font-bold text-slate-300 uppercase
-                             tracking-wider mb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider
+                             mb-3 text-theme-secondary">
                 Sets
               </h3>
               <div className="space-y-2">
@@ -385,16 +385,17 @@ export default function AdminMatchControl() {
                     key={s.set_number}
                     className="flex items-center justify-between text-sm"
                   >
-                    <span className="text-slate-300 font-semibold">
+                    <span className="font-semibold text-theme-secondary">
                       Set {s.set_number}
                     </span>
                     <span className={`font-mono font-black
                       ${s.status === 'completed'
-                        ? 'text-white' : 'text-blue-400'}`}>
+                        ? 'text-theme-primary'
+                        : 'text-blue-400'}`}>
                       {s.team_a_score} – {s.team_b_score}
                     </span>
-                    <span className="text-xs text-slate-300 font-semibold
-                                     w-24 text-right">
+                    <span className="text-xs font-semibold w-24
+                                     text-right text-theme-secondary">
                       {s.winner_team_id
                         ? `${s.winner_team_id === match.team_a_id
                             ? match.team_a_name
@@ -412,18 +413,20 @@ export default function AdminMatchControl() {
             <button
               onClick={handleUndo}
               disabled={acting || !hasRallies}
-              className="bg-slate-700 hover:bg-slate-600 disabled:opacity-40
-                         disabled:cursor-not-allowed text-white font-bold
-                         py-3 rounded-xl transition-colors"
+              className="bg-theme-input disabled:opacity-40
+                         disabled:cursor-not-allowed text-theme-primary
+                         font-bold py-3 rounded-xl transition-colors
+                         hover-theme"
             >
               ↩ Undo
             </button>
             <button
               onClick={handleAbandon}
               disabled={acting}
-              className="bg-red-900/50 hover:bg-red-800/50 disabled:opacity-40
-                         text-red-400 hover:text-red-300 font-bold py-3
-                         rounded-xl border border-red-700/50 transition-colors"
+              className="disabled:opacity-40 text-red-400
+                         hover:text-red-300 font-bold py-3 rounded-xl
+                         border border-red-700/50 transition-colors
+                         bg-red-900/20 hover:bg-red-900/30"
             >
               Abandon
             </button>
@@ -434,13 +437,13 @@ export default function AdminMatchControl() {
       {/* Rally History Link */}
       <Link
         to={`/match/${id}/history`}
-        className="block text-center text-sm text-slate-300
-                   hover:text-white transition-colors py-2 font-semibold
-                   border border-slate-600 rounded-xl"
+        className="block text-center text-sm text-theme-secondary
+                   hover:text-theme-primary transition-colors py-2
+                   font-semibold border border-theme rounded-xl
+                   hover-theme"
       >
         📋 View Rally History
       </Link>
-
     </div>
   )
 }

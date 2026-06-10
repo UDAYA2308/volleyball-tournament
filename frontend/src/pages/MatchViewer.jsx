@@ -44,13 +44,15 @@ export default function MatchViewer() {
       <div className="flex flex-col items-center gap-3">
         <div className="w-5 h-5 rounded-full border-2 border-blue-500
                         border-t-transparent animate-spin" />
-        <p className="text-slate-300 text-sm">Loading match...</p>
+        <p className="text-sm text-theme-secondary">
+          Loading match...
+        </p>
       </div>
     </div>
   )
 
   if (!match) return (
-    <div className="text-center text-slate-300 py-20">
+    <div className="text-center py-20 text-theme-secondary">
       Match not found
     </div>
   )
@@ -73,11 +75,10 @@ export default function MatchViewer() {
 
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wider
-                         text-slate-300">
+                         text-theme-secondary">
           {match.match_type === 'league'
             ? `Round ${match.round_number}`
             : match.match_type?.replace('_', ' ').toUpperCase()}
@@ -94,15 +95,16 @@ export default function MatchViewer() {
       </div>
 
       {/* Main Scoreboard */}
-      <div className="bg-slate-800 rounded-2xl border border-slate-600
+      <div className="bg-theme-card rounded-2xl border border-theme
                       p-4 sm:p-6">
         <div className="grid grid-cols-3 items-center gap-2 sm:gap-4">
-
           {/* Team A */}
-          <div className={`text-center
-            ${isDone && teamAWon ? 'text-white' : 'text-slate-300'}`}>
-            <div className="font-black text-base sm:text-xl md:text-2xl
-                            leading-tight">
+          <div className="text-center">
+            <div className={`font-black text-base sm:text-xl md:text-2xl
+                             leading-tight
+              ${isDone && teamAWon
+                ? 'text-theme-primary'
+                : 'text-theme-secondary'}`}>
               {match.team_a_name}
             </div>
             {isDone && teamAWon && (
@@ -120,35 +122,47 @@ export default function MatchViewer() {
 
           {/* Score */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-1 sm:gap-3">
-              <span className={`text-4xl sm:text-5xl font-black tabular-nums
-                ${isDone && teamAWon ? 'text-blue-400' : 'text-white'}`}>
+            <div className="flex items-center justify-center
+                            gap-1 sm:gap-3">
+              <span className={`text-4xl sm:text-5xl font-black
+                                tabular-nums
+                ${isDone && teamAWon
+                  ? 'text-blue-400'
+                  : 'text-theme-primary'}`}>
                 {teamASets}
               </span>
-              <span className="text-xl sm:text-2xl text-slate-400">:</span>
-              <span className={`text-4xl sm:text-5xl font-black tabular-nums
-                ${isDone && teamBWon ? 'text-orange-400' : 'text-white'}`}>
+              <span className="text-xl sm:text-2xl text-theme-secondary">
+                :
+              </span>
+              <span className={`text-4xl sm:text-5xl font-black
+                                tabular-nums
+                ${isDone && teamBWon
+                  ? 'text-orange-400'
+                  : 'text-theme-primary'}`}>
                 {teamBSets}
               </span>
             </div>
             {isLive && (
-              <div className="mt-1 sm:mt-2 text-white font-mono font-bold
-                              text-sm tabular-nums">
+              <div className="mt-1 sm:mt-2 text-theme-primary font-mono
+                              font-bold text-sm tabular-nums">
                 {teamAScore} – {teamBScore}
               </div>
             )}
             {isLive && live?.set_number && (
-              <div className="text-xs text-slate-300 font-semibold mt-0.5">
+              <div className="text-xs text-theme-secondary font-semibold
+                              mt-0.5">
                 Set {live.set_number}
               </div>
             )}
           </div>
 
           {/* Team B */}
-          <div className={`text-center
-            ${isDone && teamBWon ? 'text-white' : 'text-slate-300'}`}>
-            <div className="font-black text-base sm:text-xl md:text-2xl
-                            leading-tight">
+          <div className="text-center">
+            <div className={`font-black text-base sm:text-xl md:text-2xl
+                             leading-tight
+              ${isDone && teamBWon
+                ? 'text-theme-primary'
+                : 'text-theme-secondary'}`}>
               {match.team_b_name}
             </div>
             {isDone && teamBWon && (
@@ -167,10 +181,11 @@ export default function MatchViewer() {
 
         {/* Current Server */}
         {isLive && state?.server_name && (
-          <div className="mt-4 text-center text-sm text-slate-300
-                          bg-slate-700/50 rounded-lg py-2 font-medium">
+          <div className="mt-4 text-center text-sm bg-theme-input
+                          rounded-lg py-2 font-medium
+                          text-theme-secondary">
             🏐{' '}
-            <span className="text-white font-bold">
+            <span className="text-theme-primary font-bold">
               {state.server_name}
             </span>
             {' '}is serving
@@ -180,8 +195,8 @@ export default function MatchViewer() {
 
       {/* Set Scores */}
       {sets.length > 0 && (
-        <div className="bg-slate-800 rounded-xl border border-slate-600 p-4">
-          <h3 className="text-xs font-bold text-slate-300 uppercase
+        <div className="bg-theme-card rounded-xl border border-theme p-4">
+          <h3 className="text-xs font-bold text-theme-secondary uppercase
                          tracking-wider mb-3">
             Set Scores
           </h3>
@@ -189,28 +204,29 @@ export default function MatchViewer() {
             {sets.map(s => {
               const setAWon = s.winner_team_id === match.team_a_id
               const setBWon = s.winner_team_id === match.team_b_id
-
               return (
                 <div
                   key={s.set_number}
                   className="flex items-center justify-between text-sm"
                 >
-                  <span className="text-slate-300 font-semibold w-12">
+                  <span className="text-theme-secondary font-semibold
+                                   w-12">
                     Set {s.set_number}
                   </span>
                   <span className="font-mono font-bold">
-                    <span className={setAWon ? 'text-blue-400' : 'text-white'}>
+                    <span className={setAWon
+                      ? 'text-blue-400' : 'text-theme-primary'}>
                       {s.team_a_score}
                     </span>
-                    <span className="text-slate-300 mx-1">–</span>
+                    <span className="text-theme-secondary mx-1">–</span>
                     <span className={setBWon
-                      ? 'text-orange-400' : 'text-white'}>
+                      ? 'text-orange-400' : 'text-theme-primary'}>
                       {s.team_b_score}
                     </span>
                   </span>
                   {s.winner_team_id ? (
-                    <span className="text-xs text-slate-300 font-semibold
-                                     text-right">
+                    <span className="text-xs text-theme-secondary
+                                     font-semibold text-right">
                       {s.winner_team_id === match.team_a_id
                         ? match.team_a_name
                         : match.team_b_name}{' '}won
@@ -236,7 +252,6 @@ export default function MatchViewer() {
       >
         View point-by-point history →
       </Link>
-
     </div>
   )
 }

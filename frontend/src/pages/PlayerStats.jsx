@@ -45,14 +45,18 @@ export default function PlayerStats() {
       <div className="flex flex-col items-center gap-3">
         <div className="w-5 h-5 rounded-full border-2 border-blue-500
                         border-t-transparent animate-spin" />
-        <p className="text-slate-300 text-sm">Loading player stats...</p>
+        <p className="text-sm text-theme-secondary">
+          Loading player stats...
+        </p>
       </div>
     </div>
   )
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Player Stats</h1>
+      <h1 className="text-2xl font-bold text-theme-primary">
+        Player Stats
+      </h1>
 
       {/* Top 3 Cards */}
       {filtered.length >= 3 && (
@@ -60,7 +64,7 @@ export default function PlayerStats() {
           {filtered.slice(0, 3).map((player, i) => (
             <div
               key={player.player_id}
-              className={`bg-slate-800 rounded-xl border p-3 sm:p-4
+              className={`bg-theme-card rounded-xl border p-3 sm:p-4
                           text-center
                 ${i === 0 ? 'border-yellow-500/50'
                 : i === 1 ? 'border-slate-400/50'
@@ -69,18 +73,19 @@ export default function PlayerStats() {
               <div className="text-xl sm:text-2xl mb-1">
                 {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
               </div>
-              <div className="font-bold text-white text-xs sm:text-sm
-                              truncate">
+              <div className="font-bold text-xs sm:text-sm truncate
+                              text-theme-primary">
                 {player.player_name}
               </div>
-              <div className="text-xs text-slate-300 mb-1 sm:mb-2 truncate">
+              <div className="text-xs mb-1 sm:mb-2 truncate
+                              text-theme-secondary">
                 {player.team_name}
               </div>
               <div className={`text-xl sm:text-2xl font-black
                 ${getConversionColor(player.serve_conversion_rate)}`}>
                 {player.serve_conversion_rate?.toFixed(1)}%
               </div>
-              <div className="text-xs text-slate-300 mt-1">
+              <div className="text-xs mt-1 text-theme-secondary">
                 {player.serve_points_won}/{player.total_serves}
                 <span className="hidden sm:inline"> serves</span>
               </div>
@@ -91,17 +96,17 @@ export default function PlayerStats() {
 
       {/* Filters */}
       <div className="space-y-3">
-
         {/* Sort */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-slate-300 shrink-0">
+          <span className="text-xs font-semibold shrink-0
+                           text-theme-secondary">
             Sort:
           </span>
           <div className="flex flex-wrap gap-1">
             {[
-              { key: 'serve_conversion_rate', label: 'Rate %',     fullLabel: 'Conversion %' },
-              { key: 'total_serves',          label: 'Serves',     fullLabel: 'Most Serves'  },
-              { key: 'serve_points_won',      label: 'Won',        fullLabel: 'Points Won'   },
+              { key: 'serve_conversion_rate', label: 'Rate %',  fullLabel: 'Conversion %' },
+              { key: 'total_serves',          label: 'Serves',  fullLabel: 'Most Serves'  },
+              { key: 'serve_points_won',      label: 'Won',     fullLabel: 'Points Won'   },
             ].map(opt => (
               <button
                 key={opt.key}
@@ -110,7 +115,7 @@ export default function PlayerStats() {
                             transition-colors font-semibold
                   ${sortBy === opt.key
                     ? 'bg-blue-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                    : 'bg-theme-input text-theme-secondary hover:text-theme-primary'}`}
               >
                 <span className="sm:hidden">{opt.label}</span>
                 <span className="hidden sm:inline">{opt.fullLabel}</span>
@@ -121,7 +126,8 @@ export default function PlayerStats() {
 
         {/* Team Filter */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-slate-300 shrink-0">
+          <span className="text-xs font-semibold shrink-0
+                           text-theme-secondary">
             Team:
           </span>
           <div className="flex flex-wrap gap-1">
@@ -133,7 +139,7 @@ export default function PlayerStats() {
                             transition-colors capitalize font-semibold
                   ${filterTeam === team
                     ? 'bg-blue-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                    : 'bg-theme-input text-theme-secondary hover:text-theme-primary'}`}
               >
                 {team}
               </button>
@@ -144,17 +150,16 @@ export default function PlayerStats() {
 
       {/* Stats Table */}
       {filtered.length === 0 ? (
-        <div className="text-center text-slate-300 py-12">
+        <div className="text-center py-12 text-theme-secondary">
           No serve data yet — matches need to be played first
         </div>
       ) : (
-        <div className="bg-slate-800 rounded-xl border border-slate-600
+        <div className="bg-theme-card rounded-xl border border-theme
                         overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[360px]">
-
               <thead>
-                <tr className="border-b border-slate-600 text-slate-300
+                <tr className="border-b border-theme text-theme-secondary
                                text-xs uppercase tracking-wider font-bold">
                   <th className="text-left px-3 sm:px-4 py-3">#</th>
                   <th className="text-left px-3 sm:px-4 py-3">Player</th>
@@ -175,54 +180,55 @@ export default function PlayerStats() {
                                  hidden sm:table-cell">
                     Lost
                   </th>
-                  <th className="text-center px-3 sm:px-4 py-3 text-blue-400">
+                  <th className="text-center px-3 sm:px-4 py-3
+                                 text-blue-400">
                     Rate
                   </th>
                 </tr>
               </thead>
-
               <tbody>
                 {filtered.map((player, i) => (
                   <tr
                     key={player.player_id}
-                    className="border-b border-slate-600/50
-                               hover:bg-slate-700/40 transition-colors"
+                    className="border-b border-theme transition-colors
+                               hover-theme"
                   >
                     {/* Rank */}
-                    <td className="px-3 sm:px-4 py-3 text-slate-300
-                                   text-xs font-bold tabular-nums">
+                    <td className="px-3 sm:px-4 py-3 text-xs font-bold
+                                   tabular-nums text-theme-secondary">
                       {i + 1}
                     </td>
 
                     {/* Player name */}
                     <td className="px-3 sm:px-4 py-3 font-semibold
-                                   text-white max-w-[120px] sm:max-w-none">
+                                   text-theme-primary max-w-[120px]
+                                   sm:max-w-none">
                       <span className="truncate block">
                         {player.player_name}
                       </span>
-                      {/* Team shown below name on mobile */}
-                      <span className="sm:hidden text-xs text-slate-300
-                                       font-normal truncate block">
+                      <span className="sm:hidden text-xs font-normal
+                                       truncate block text-theme-secondary">
                         {player.team_name}
                       </span>
                     </td>
 
                     {/* Team */}
-                    <td className="px-3 sm:px-4 py-3 text-slate-300
+                    <td className="px-3 sm:px-4 py-3 text-theme-primary
                                    hidden sm:table-cell">
                       {player.team_name}
                     </td>
 
                     {/* Position */}
-                    <td className="px-3 sm:px-4 py-3 text-slate-300
-                                   text-xs hidden md:table-cell
+                    <td className="px-3 sm:px-4 py-3 text-xs
+                                   text-theme-primary hidden md:table-cell
                                    max-w-[120px] truncate">
                       {player.position || '—'}
                     </td>
 
                     {/* Serves */}
-                    <td className="px-3 sm:px-4 py-3 text-center text-white
-                                   font-mono font-semibold tabular-nums">
+                    <td className="px-3 sm:px-4 py-3 text-center
+                                   text-theme-primary font-mono
+                                   font-semibold tabular-nums">
                       {player.total_serves}
                     </td>
 
@@ -234,9 +240,9 @@ export default function PlayerStats() {
                     </td>
 
                     {/* Lost */}
-                    <td className="px-3 sm:px-4 py-3 text-center text-red-400
-                                   font-mono font-semibold tabular-nums
-                                   hidden sm:table-cell">
+                    <td className="px-3 sm:px-4 py-3 text-center
+                                   text-red-400 font-mono font-semibold
+                                   tabular-nums hidden sm:table-cell">
                       {player.serve_points_lost}
                     </td>
 
@@ -248,7 +254,7 @@ export default function PlayerStats() {
                             player.serve_conversion_rate)}`}>
                           {player.serve_conversion_rate?.toFixed(1)}%
                         </span>
-                        <div className="w-12 sm:w-16 h-1.5 bg-slate-700
+                        <div className="w-12 sm:w-16 h-1.5 bg-theme-input
                                         rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all
@@ -264,16 +270,14 @@ export default function PlayerStats() {
                   </tr>
                 ))}
               </tbody>
-
             </table>
           </div>
         </div>
       )}
 
-      <p className="text-xs text-slate-300 text-center">
+      <p className="text-xs text-center text-theme-secondary">
         Only players with at least 1 serve are shown
       </p>
-
     </div>
   )
 }

@@ -42,7 +42,6 @@ export default function Home() {
     }))
   }, [wsData])
 
-  // Group by round/match type
   const rounds = schedule.reduce((acc, match) => {
     const key = match.match_type === 'league'
       ? `Day ${match.round_number}`
@@ -52,19 +51,12 @@ export default function Home() {
     return acc
   }, {})
 
-  // Sort — playoffs first (Final at top), then league days
   const sortedRounds = Object.entries(rounds).sort(([a], [b]) => {
     const aIsPlayoff = ROUND_ORDER[a] !== undefined
     const bIsPlayoff = ROUND_ORDER[b] !== undefined
-
-    // Both playoffs — sort by playoff order (Final=1 first)
-    if (aIsPlayoff && bIsPlayoff) {
-      return ROUND_ORDER[a] - ROUND_ORDER[b]
-    }
-    // Playoffs come before league
+    if (aIsPlayoff && bIsPlayoff) return ROUND_ORDER[a] - ROUND_ORDER[b]
     if (aIsPlayoff) return -1
     if (bIsPlayoff) return 1
-    // Both league days — sort numerically
     const aDay = parseInt(a.replace('Day ', ''))
     const bDay = parseInt(b.replace('Day ', ''))
     return aDay - bDay
@@ -77,17 +69,18 @@ export default function Home() {
       <div className="flex flex-col items-center gap-3">
         <div className="w-5 h-5 rounded-full border-2 border-blue-500
                         border-t-transparent animate-spin" />
-        <p className="text-slate-300 text-sm">Loading schedule...</p>
+        <p className="text-sm text-theme-secondary">
+          Loading schedule...
+        </p>
       </div>
     </div>
   )
 
   return (
     <div className="space-y-8 sm:space-y-10">
-
       {/* Page header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-white">
+        <h1 className="text-xl sm:text-2xl font-bold text-theme-primary">
           Match Schedule
         </h1>
         {hasLive && <LiveBadge />}
@@ -105,13 +98,14 @@ export default function Home() {
 
         return (
           <div key={round} className="space-y-3">
-
             {/* Round header */}
-            <div className="flex items-center justify-between
-                            border-b border-slate-600 pb-2">
+            <div className="flex items-center justify-between pb-2
+                            border-b border-theme">
               <h2 className={`text-xs sm:text-sm font-bold uppercase
                               tracking-widest
-                ${isPlayoff ? 'text-blue-400' : 'text-white'}`}>
+                ${isPlayoff
+                  ? 'text-blue-400'
+                  : 'text-theme-primary'}`}>
                 {round}
               </h2>
               <div className="flex items-center gap-2 sm:gap-3">
@@ -120,7 +114,7 @@ export default function Home() {
                     {liveCount} live
                   </span>
                 )}
-                <span className="text-xs font-semibold text-slate-300">
+                <span className="text-xs font-semibold text-theme-secondary">
                   {completedCount}/{matches.length} played
                 </span>
               </div>

@@ -38,16 +38,16 @@ export default function AdminLogin() {
 
   return (
     <div className="max-w-sm mx-auto mt-16 sm:mt-20 px-4 sm:px-0">
-      <div className="bg-slate-800 rounded-2xl border border-slate-600 p-6
-                      sm:p-8">
-
+      <div className="bg-theme-card rounded-2xl border border-theme
+                      p-6 sm:p-8">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="text-3xl mb-3">🔒</div>
-          <h1 className="text-lg sm:text-xl font-bold text-white mb-2">
+          <h1 className="text-lg sm:text-xl font-bold text-theme-primary
+                         mb-2">
             Admin Access
           </h1>
-          <p className="text-slate-300 text-sm">
+          <p className="text-sm text-theme-secondary">
             Enter the admin password to manage matches
           </p>
         </div>
@@ -60,9 +60,9 @@ export default function AdminLogin() {
             onChange={e => setPassword(e.target.value)}
             placeholder="Password"
             autoFocus
-            className="w-full bg-slate-700 border border-slate-600
-                       rounded-lg px-4 py-3 text-white text-sm
-                       placeholder-slate-400 focus:outline-none
+            className="w-full bg-theme-input border border-theme
+                       rounded-lg px-4 py-3 text-theme-primary text-sm
+                       placeholder:text-theme-secondary focus:outline-none
                        focus:border-blue-500 transition-colors"
           />
           {error && (
@@ -79,7 +79,6 @@ export default function AdminLogin() {
             Login
           </button>
         </form>
-
       </div>
     </div>
   )

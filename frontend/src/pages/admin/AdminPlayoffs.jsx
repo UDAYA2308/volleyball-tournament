@@ -43,7 +43,7 @@ export default function AdminPlayoffs() {
       <div className="flex flex-col items-center gap-3">
         <div className="w-5 h-5 rounded-full border-2 border-blue-500
                         border-t-transparent animate-spin" />
-        <p className="text-slate-300 text-sm">Loading...</p>
+        <p className="text-sm text-theme-secondary">Loading...</p>
       </div>
     </div>
   )
@@ -53,9 +53,10 @@ export default function AdminPlayoffs() {
                     (status?.league_matches_done ?? 0)
 
   return (
-    <div className="space-y-6 max-w-sm mx-auto mt-6 sm:mt-10 px-4 sm:px-0">
-
-      <h1 className="text-xl sm:text-2xl font-bold text-white text-center">
+    <div className="space-y-6 max-w-sm mx-auto mt-6 sm:mt-10
+                    px-4 sm:px-0">
+      <h1 className="text-xl sm:text-2xl font-bold text-center
+                     text-theme-primary">
         Generate Playoffs
       </h1>
 
@@ -75,12 +76,12 @@ export default function AdminPlayoffs() {
         <div className="bg-blue-500/10 border border-blue-500/30
                         rounded-xl p-5 sm:p-6 text-center space-y-3">
           <div className="text-3xl">🏆</div>
-          <div className="text-white font-bold text-base sm:text-lg">
+          <div className="font-bold text-base sm:text-lg text-theme-primary">
             Playoffs already generated
           </div>
-          <div className="text-slate-300 text-sm capitalize">
+          <div className="text-sm capitalize text-theme-secondary">
             Current stage:{' '}
-            <span className="text-white font-semibold">
+            <span className="font-semibold text-theme-primary">
               {status?.stage}
             </span>
           </div>
@@ -97,24 +98,23 @@ export default function AdminPlayoffs() {
 
       {/* League stage */}
       {status?.stage === 'league' && (
-        <div className="bg-slate-800 rounded-xl border border-slate-600
+        <div className="bg-theme-card rounded-xl border border-theme
                         p-4 sm:p-6 space-y-4">
-
           {/* Progress */}
           <div className="text-center">
-            <div className="text-4xl sm:text-5xl font-black text-white
-                            tabular-nums">
+            <div className="text-4xl sm:text-5xl font-black tabular-nums
+                            text-theme-primary">
               {status?.league_matches_done}
-              <span className="text-slate-400 mx-1">/</span>
+              <span className="text-theme-secondary mx-1">/</span>
               {status?.league_matches_total}
             </div>
-            <div className="text-slate-300 text-sm font-semibold mt-1">
+            <div className="text-sm font-semibold mt-1 text-theme-secondary">
               league matches completed
             </div>
           </div>
 
           {/* Progress bar */}
-          <div className="w-full bg-slate-700 rounded-full h-3">
+          <div className="w-full bg-theme-input rounded-full h-3">
             <div
               className="bg-blue-500 h-3 rounded-full transition-all"
               style={{
@@ -130,7 +130,7 @@ export default function AdminPlayoffs() {
                             rounded-lg p-3 text-sm font-semibold
                             text-yellow-400 text-center">
               ⚠️{' '}
-              <span className="text-white">
+              <span className="text-theme-primary">
                 {remaining} match{remaining !== 1 ? 'es' : ''}
               </span>
               {' '}remaining before playoffs can be generated
@@ -160,13 +160,13 @@ export default function AdminPlayoffs() {
       {/* Link to bracket */}
       <button
         onClick={() => navigate('/playoffs')}
-        className="w-full text-center text-sm text-slate-300
-                   hover:text-white transition-colors py-2 font-semibold
-                   border border-slate-600 rounded-xl"
+        className="w-full text-center text-sm font-semibold rounded-xl
+                   py-2 border border-theme transition-colors
+                   text-theme-secondary hover:text-theme-primary
+                   hover-theme"
       >
         View public bracket →
       </button>
-
     </div>
   )
 }

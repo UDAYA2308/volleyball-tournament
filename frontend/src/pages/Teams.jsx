@@ -49,14 +49,18 @@ export default function Teams() {
       <div className="flex flex-col items-center gap-3">
         <div className="w-5 h-5 rounded-full border-2 border-blue-500
                         border-t-transparent animate-spin" />
-        <p className="text-slate-300 text-sm">Loading teams...</p>
+        <p className="text-sm text-theme-secondary">
+          Loading teams...
+        </p>
       </div>
     </div>
   )
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Teams</h1>
+      <h1 className="text-2xl font-bold text-theme-primary">
+        Teams
+      </h1>
 
       <div className="space-y-3">
         {teams.map(team => {
@@ -67,26 +71,27 @@ export default function Teams() {
           return (
             <div
               key={team.id}
-              className={`bg-slate-800 rounded-xl border transition-all
-                ${isOpen ? 'border-blue-500/70' : 'border-slate-600'}`}
+              className={`bg-theme-card rounded-xl border transition-all
+                ${isOpen
+                  ? 'border-blue-500/70'
+                  : 'border-theme'}`}
             >
               {/* Team Header */}
               <button
                 onClick={() => handleExpand(team.id)}
                 className="w-full px-3 sm:px-4 py-3 sm:py-4
                            flex items-center justify-between
-                           hover:bg-slate-700/30 rounded-xl
-                           transition-colors"
+                           rounded-xl transition-colors hover-theme"
               >
                 {/* Left — name + count */}
                 <div className="flex items-center gap-2 sm:gap-3
                                 min-w-0">
-                  <span className="font-bold text-white text-base
-                                   sm:text-lg truncate">
+                  <span className="font-bold text-base sm:text-lg
+                                   truncate text-theme-primary">
                     {team.name}
                   </span>
-                  <span className="text-xs font-semibold text-slate-300
-                                   shrink-0">
+                  <span className="text-xs font-semibold shrink-0
+                                   text-theme-secondary">
                     {team.player_count} players
                   </span>
                 </div>
@@ -97,9 +102,10 @@ export default function Teams() {
                   {standing && (
                     <div className="flex items-center gap-2 sm:gap-3
                                     text-xs sm:text-sm">
-                      <span className="text-slate-300">
+                      <span className="text-theme-secondary">
                         P:{' '}
-                        <span className="text-white font-mono font-bold">
+                        <span className="font-mono font-bold
+                                         text-theme-primary">
                           {standing.matches_played}
                         </span>
                       </span>
@@ -115,23 +121,24 @@ export default function Teams() {
                           {standing.matches_lost}
                         </span>
                       </span>
-                      <span className="text-blue-400 font-bold
+                      <span className="text-green-400 font-bold
                                        hidden sm:inline">
                         {standing.points} pts
                       </span>
                     </div>
                   )}
-                  <span className="text-slate-300 text-base sm:text-lg">
+                  <span className="text-base sm:text-lg
+                                   text-theme-secondary">
                     {isOpen ? '▲' : '▼'}
                   </span>
                 </div>
               </button>
 
               {/* Mobile pts row */}
-              {standing && isOpen === false && (
+              {standing && !isOpen && (
                 <div className="sm:hidden px-3 pb-2.5 flex items-center
                                 gap-3 text-xs">
-                  <span className="text-blue-400 font-bold">
+                  <span className="text-green-400 font-bold">
                     {standing.points} pts
                   </span>
                 </div>
@@ -139,21 +146,20 @@ export default function Teams() {
 
               {/* Roster */}
               {isOpen && (
-                <div className="border-t border-slate-600 px-3 sm:px-4
+                <div className="border-t border-theme px-3 sm:px-4
                                 py-3 sm:py-4">
                   {players.length === 0 ? (
-                    <div className="text-slate-300 text-sm text-center
-                                    py-4 animate-pulse">
+                    <div className="text-sm text-center py-4
+                                    animate-pulse text-theme-secondary">
                       Loading roster...
                     </div>
                   ) : (
                     <div className="space-y-1.5">
-
                       {/* Column headers */}
                       <div className="grid grid-cols-12 text-xs
-                                      text-slate-300 font-bold uppercase
-                                      tracking-wider pb-2
-                                      border-b border-slate-600">
+                                      text-theme-secondary font-bold
+                                      uppercase tracking-wider pb-2
+                                      border-b border-theme">
                         <div className="col-span-5 sm:col-span-4">
                           Player
                         </div>
@@ -174,17 +180,17 @@ export default function Teams() {
                         <div
                           key={player.id}
                           className="grid grid-cols-12 items-center
-                                     py-2 sm:py-2.5 border-b
-                                     border-slate-600/50 text-sm
-                                     hover:bg-slate-700/20 rounded-lg
-                                     px-1 transition-colors"
+                                     py-2 sm:py-2.5 border-b border-theme
+                                     px-1 rounded-lg transition-colors
+                                     hover-theme"
                         >
                           {/* Name + captain badge */}
                           <div className="col-span-5 sm:col-span-4
                                           flex items-center gap-1.5
                                           min-w-0 pr-2">
-                            <span className="text-white font-semibold
-                                             truncate text-xs sm:text-sm">
+                            <span className="font-semibold truncate
+                                             text-xs sm:text-sm
+                                             text-theme-primary">
                               {player.name}
                             </span>
                             {player.captain_willing === 1 && (
@@ -200,8 +206,8 @@ export default function Teams() {
 
                           {/* Position — hidden on mobile */}
                           <div className="col-span-4 hidden sm:block
-                                          text-slate-300 text-xs
-                                          truncate pr-2">
+                                          text-xs truncate pr-2
+                                          text-theme-primary">
                             {player.position || '—'}
                           </div>
 
@@ -209,7 +215,7 @@ export default function Teams() {
                           <div className={`col-span-4 sm:col-span-3
                                            text-xs font-semibold truncate
                             ${EXPERIENCE_COLOR[player.experience]
-                              ?? 'text-slate-300'}`}>
+                              ?? 'text-theme-secondary'}`}>
                             <span className="hidden sm:inline">
                               {EXPERIENCE_LABEL[player.experience]
                                 ?? player.experience ?? '—'}
@@ -227,16 +233,14 @@ export default function Teams() {
 
                           {/* Gender */}
                           <div className="col-span-3 sm:col-span-1
-                                          text-slate-300 text-xs
-                                          font-medium text-right
-                                          sm:text-left">
+                                          text-xs font-medium text-right
+                                          sm:text-left text-theme-secondary">
                             {player.gender
                               ? player.gender.charAt(0).toUpperCase()
                               : '—'}
                           </div>
                         </div>
                       ))}
-
                     </div>
                   )}
                 </div>
