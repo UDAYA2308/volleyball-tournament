@@ -68,7 +68,13 @@ def start_tunnel(local_port, label):
         return None, None
 
     proc = subprocess.Popen(
-        ["cloudflared", "tunnel", "--url", f"http://localhost:{local_port}"],
+        [
+            "cloudflared", "tunnel",
+            "--url", f"http://localhost:{local_port}",
+            "--no-autoupdate",
+            "--protocol", "http2",
+            "--edge-ip-version", "4",
+        ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -130,7 +136,7 @@ def main():
     print("="*60)
 
     # ── FIND PORTS ────────────────────────────────────────────
-    api_port      = find_free_port(8000, 8100)
+    api_port      = find_free_port(8000, 8006)
     frontend_port = find_free_frontend_port = find_free_port(5173, 5200)
     local_ip      = get_local_ip()
 
