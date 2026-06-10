@@ -44,22 +44,13 @@ export default function Teams() {
   const getStanding = (teamId) =>
     standings.find(s => s.team_id === teamId)
 
-  const getRank = (teamId) => {
-    const idx = standings.findIndex(s => s.team_id === teamId)
-    return idx === -1 ? null : idx + 1
-  }
-
-  const RANK_BADGE = {
-    1: { label: '🥇 Rank 1', cls: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-    2: { label: '🥈 Rank 2', cls: 'bg-slate-400/20 text-slate-300 border-slate-400/30' },
-    3: { label: '🥉 Rank 3', cls: 'bg-orange-700/20 text-orange-400 border-orange-700/30' },
-    4: { label: '✅ Rank 4', cls: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-    5: { label: '❌ Rank 5', cls: 'bg-red-500/10 text-red-400 border-red-500/20' },
-  }
-
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <div className="text-slate-400 animate-pulse">Loading teams...</div>
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-5 h-5 rounded-full border-2 border-blue-500
+                        border-t-transparent animate-spin" />
+        <p className="text-slate-300 text-sm">Loading teams...</p>
+      </div>
     </div>
   )
 
@@ -70,82 +61,76 @@ export default function Teams() {
       <div className="space-y-3">
         {teams.map(team => {
           const standing = getStanding(team.id)
-          const rank     = getRank(team.id)
-          const badge    = RANK_BADGE[rank]
           const isOpen   = expanded === team.id
           const players  = rosters[team.id] || []
 
           return (
-            <div key={team.id}
+            <div
+              key={team.id}
               className={`bg-slate-800 rounded-xl border transition-all
-                ${isOpen ? 'border-blue-500/50' : 'border-slate-700'}`}
+                ${isOpen ? 'border-blue-500/70' : 'border-slate-600'}`}
             >
               {/* Team Header */}
               <button
                 onClick={() => handleExpand(team.id)}
-                className="w-full px-4 py-4 flex items-center justify-between
-                           hover:bg-slate-700/30 rounded-xl transition-colors"
+                className="w-full px-3 sm:px-4 py-3 sm:py-4
+                           flex items-center justify-between
+                           hover:bg-slate-700/30 rounded-xl
+                           transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  {/* Rank badge */}
-                  {badge && (
-                    <span className={`text-xs font-semibold px-2 py-1
-                                      rounded-full border ${badge.cls}`}>
-                      {badge.label}
-                    </span>
-                  )}
-                  <span className="font-bold text-white text-lg">
+                {/* Left — name + count */}
+                <div className="flex items-center gap-2 sm:gap-3
+                                min-w-0">
+                  <span className="font-bold text-white text-base
+                                   sm:text-lg truncate">
                     {team.name}
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs font-semibold text-slate-300
+                                   shrink-0">
                     {team.player_count} players
                   </span>
                 </div>
 
-                {/* Match record */}
-                <div className="flex items-center gap-4">
+                {/* Right — record + chevron */}
+                <div className="flex items-center gap-2 sm:gap-4
+                                shrink-0 ml-2">
                   {standing && (
-                    <div className="hidden sm:flex items-center gap-3 text-sm">
-                      <span className="text-slate-400">
-                        P: <span className="text-white font-mono">
+                    <div className="flex items-center gap-2 sm:gap-3
+                                    text-xs sm:text-sm">
+                      <span className="text-slate-300">
+                        P:{' '}
+                        <span className="text-white font-mono font-bold">
                           {standing.matches_played}
                         </span>
                       </span>
-                      <span className="text-green-400">
-                        W: <span className="font-mono">
+                      <span className="text-emerald-400 font-semibold">
+                        W:{' '}
+                        <span className="font-mono">
                           {standing.matches_won}
                         </span>
                       </span>
-                      <span className="text-red-400">
-                        L: <span className="font-mono">
+                      <span className="text-red-400 font-semibold">
+                        L:{' '}
+                        <span className="font-mono">
                           {standing.matches_lost}
                         </span>
                       </span>
-                      <span className="text-blue-400 font-bold">
+                      <span className="text-blue-400 font-bold
+                                       hidden sm:inline">
                         {standing.total_points?.toFixed(2)} pts
                       </span>
                     </div>
                   )}
-                  <span className="text-slate-400 text-lg">
+                  <span className="text-slate-300 text-base sm:text-lg">
                     {isOpen ? '▲' : '▼'}
                   </span>
                 </div>
               </button>
 
-              {/* Mobile stats row */}
-              {standing && (
-                <div className="sm:hidden px-4 pb-3 flex gap-4 text-sm">
-                  <span className="text-slate-400">
-                    P: <span className="text-white font-mono">
-                      {standing.matches_played}
-                    </span>
-                  </span>
-                  <span className="text-green-400">
-                    W: <span className="font-mono">{standing.matches_won}</span>
-                  </span>
-                  <span className="text-red-400">
-                    L: <span className="font-mono">{standing.matches_lost}</span>
-                  </span>
+              {/* Mobile pts row */}
+              {standing && isOpen === false && (
+                <div className="sm:hidden px-3 pb-2.5 flex items-center
+                                gap-3 text-xs">
                   <span className="text-blue-400 font-bold">
                     {standing.total_points?.toFixed(2)} pts
                   </span>
@@ -154,46 +139,104 @@ export default function Teams() {
 
               {/* Roster */}
               {isOpen && (
-                <div className="border-t border-slate-700 px-4 py-4">
+                <div className="border-t border-slate-600 px-3 sm:px-4
+                                py-3 sm:py-4">
                   {players.length === 0 ? (
-                    <div className="text-slate-500 text-sm text-center py-4
-                                    animate-pulse">
+                    <div className="text-slate-300 text-sm text-center
+                                    py-4 animate-pulse">
                       Loading roster...
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-4 text-xs text-slate-500
-                                      uppercase tracking-wider pb-2
-                                      border-b border-slate-700/50">
-                        <span>Player</span>
-                        <span className="hidden sm:block">Position</span>
-                        <span>Experience</span>
-                        <span>Gender</span>
+                    <div className="space-y-1.5">
+
+                      {/* Column headers */}
+                      <div className="grid grid-cols-12 text-xs
+                                      text-slate-300 font-bold uppercase
+                                      tracking-wider pb-2
+                                      border-b border-slate-600">
+                        <div className="col-span-5 sm:col-span-4">
+                          Player
+                        </div>
+                        <div className="col-span-4 hidden sm:block">
+                          Position
+                        </div>
+                        <div className="col-span-4 sm:col-span-3">
+                          Experience
+                        </div>
+                        <div className="col-span-3 sm:col-span-1
+                                        text-right sm:text-left">
+                          Gender
+                        </div>
                       </div>
+
+                      {/* Player rows */}
                       {players.map(player => (
-                        <div key={player.id}
-                          className="grid grid-cols-4 items-center py-2
-                                     border-b border-slate-700/30 text-sm
-                                     hover:bg-slate-700/20 rounded-lg px-1
-                                     transition-colors">
-                          <span className="text-white font-medium truncate pr-2">
-                            {player.name}
-                          </span>
-                          <span className="hidden sm:block text-slate-400
-                                           text-xs truncate pr-2">
+                        <div
+                          key={player.id}
+                          className="grid grid-cols-12 items-center
+                                     py-2 sm:py-2.5 border-b
+                                     border-slate-600/50 text-sm
+                                     hover:bg-slate-700/20 rounded-lg
+                                     px-1 transition-colors"
+                        >
+                          {/* Name + captain badge */}
+                          <div className="col-span-5 sm:col-span-4
+                                          flex items-center gap-1.5
+                                          min-w-0 pr-2">
+                            <span className="text-white font-semibold
+                                             truncate text-xs sm:text-sm">
+                              {player.name}
+                            </span>
+                            {player.captain_willing === 1 && (
+                              <span className="shrink-0 text-[9px]
+                                               sm:text-[10px] font-bold
+                                               bg-amber-500/20 text-amber-400
+                                               border border-amber-500/40
+                                               px-1 py-0.5 rounded">
+                                C
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Position — hidden on mobile */}
+                          <div className="col-span-4 hidden sm:block
+                                          text-slate-300 text-xs
+                                          truncate pr-2">
                             {player.position || '—'}
-                          </span>
-                          <span className={`text-xs font-medium
+                          </div>
+
+                          {/* Experience */}
+                          <div className={`col-span-4 sm:col-span-3
+                                           text-xs font-semibold truncate
                             ${EXPERIENCE_COLOR[player.experience]
-                              ?? 'text-slate-400'}`}>
-                            {EXPERIENCE_LABEL[player.experience]
-                              ?? player.experience ?? '—'}
-                          </span>
-                          <span className="text-slate-400 text-xs">
-                            {player.gender || '—'}
-                          </span>
+                              ?? 'text-slate-300'}`}>
+                            <span className="hidden sm:inline">
+                              {EXPERIENCE_LABEL[player.experience]
+                                ?? player.experience ?? '—'}
+                            </span>
+                            <span className="sm:hidden">
+                              {player.experience === 'Yes, experienced'
+                                ? 'Exp'
+                                : player.experience === 'Yes, casually'
+                                ? 'Casual'
+                                : player.experience === 'Beginner'
+                                ? 'Beg'
+                                : '—'}
+                            </span>
+                          </div>
+
+                          {/* Gender */}
+                          <div className="col-span-3 sm:col-span-1
+                                          text-slate-300 text-xs
+                                          font-medium text-right
+                                          sm:text-left">
+                            {player.gender
+                              ? player.gender.charAt(0).toUpperCase()
+                              : '—'}
+                          </div>
                         </div>
                       ))}
+
                     </div>
                   )}
                 </div>

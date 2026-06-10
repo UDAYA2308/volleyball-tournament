@@ -11,44 +11,220 @@ const MATCH_TYPE_LABEL = {
   final:       '🏆 Final',
 }
 
-const MATCH_TYPE_COLOR = {
-  qualifier_1: 'border-blue-500/50',
-  eliminator:  'border-orange-500/50',
-  qualifier_2: 'border-purple-500/50',
-  final:       'border-yellow-500/50',
-}
-
-const MATCH_TYPE_BG = {
-  qualifier_1: 'bg-blue-500/10',
-  eliminator:  'bg-orange-500/10',
-  qualifier_2: 'bg-purple-500/10',
-  final:       'bg-yellow-500/10',
-}
-
-// Static bracket template shown during league stage
 const BRACKET_TEMPLATE = [
   {
-    match_type: 'qualifier_1',
+    match_type:  'qualifier_1',
     description: 'Rank 1 vs Rank 2',
-    note: 'Winner → Final  |  Loser → Qualifier 2',
+    note:        'Winner → Final  |  Loser → Q2',
   },
   {
-    match_type: 'eliminator',
+    match_type:  'eliminator',
     description: 'Rank 3 vs Rank 4',
-    note: 'Winner → Qualifier 2  |  Loser → Eliminated',
+    note:        'Winner → Q2  |  Loser → Out',
   },
   {
-    match_type: 'qualifier_2',
+    match_type:  'qualifier_2',
     description: 'Q1 Loser vs Eliminator Winner',
-    note: 'Winner → Final',
+    note:        'Winner → Final',
   },
   {
-    match_type: 'final',
+    match_type:  'final',
     description: 'Q1 Winner vs Q2 Winner',
-    note: '🏆 Tournament Champion',
+    note:        '🏆 Tournament Champion',
   },
 ]
 
+// ── Connector component ───────────────────────────────────
+function Connector({ label, color = 'border-slate-600', textColor = 'text-slate-400' }) {
+  return (
+    <div className="flex items-center gap-2 px-4 py-1">
+      <div className={`w-4 border-l-2 border-dashed h-6 ${color}`} />
+      <span className={`text-xs font-semibold ${textColor}`}>
+        {label}
+      </span>
+    </div>
+  )
+}
+
+// ── Match card component ──────────────────────────────────
+function BracketCard({ entry, isTemplate, onClick }) {
+  const isLive   = entry.schedule_status === 'live'
+  const isDone   = entry.schedule_status === 'completed'
+  const isTBD    = !entry.team_a_name || !entry.team_b_name
+  const teamAWon = entry.winner_team_id === entry.team_a_id
+  const teamBWon = entry.winner_team_id === entry.team_b_id
+
+  const BORDER_COLOR = {
+    qualifier_1: 'border-blue-500/60',
+    eliminator:  'border-orange-500/60',
+    qualifier_2: 'border-purple-500/60',
+    final:       'border-yellow-500/60',
+  }
+
+  const BG_COLOR = {
+    qualifier_1: 'bg-blue-500/8',
+    eliminator:  'bg-orange-500/8',
+    qualifier_2: 'bg-purple-500/8',
+    final:       'bg-yellow-500/8',
+  }
+
+  const TOP_BAR = {
+    qualifier_1: 'bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600',
+    eliminator:  'bg-gradient-to-r from-orange-600 via-orange-400 to-orange-600',
+    qualifier_2: 'bg-gradient-to-r from-purple-600 via-purple-400 to-purple-600',
+    final:       'bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600',
+  }
+
+  return (
+    <div
+      onClick={onClick}
+      className={`
+        rounded-xl border overflow-hidden transition-all duration-200
+        ${BORDER_COLOR[entry.match_type] ?? 'border-slate-600'}
+        ${BG_COLOR[entry.match_type]     ?? 'bg-slate-800'}
+        ${onClick ? 'cursor-pointer hover:opacity-90' : ''}
+      `}
+    >
+      {/* Top accent bar */}
+      <div className={`h-1 w-full
+        ${TOP_BAR[entry.match_type] ?? 'bg-slate-600'}`}
+      />
+
+      <div className="p-3 sm:p-4">
+
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-bold text-white">
+            {MATCH_TYPE_LABEL[entry.match_type]}
+          </span>
+          <div className="flex items-center gap-2">
+            {isLive && <LiveBadge />}
+            {isDone && !isTemplate && (
+              <span className="text-xs font-bold text-white
+                               uppercase tracking-wider">
+                Final
+              </span>
+            )}
+            {!isLive && !isDone && !isTBD && !isTemplate && (
+              <span className="text-xs font-semibold text-slate-300
+                               uppercase tracking-wider">
+                Upcoming
+              </span>
+            )}
+            {(isTBD || isTemplate) && (
+              <span className="text-xs font-semibold text-slate-300">
+                TBD
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Teams */}
+        <div className="space-y-1">
+
+          {/* Team A */}
+          <div className={`flex items-center justify-between gap-2
+                           px-2 py-2 rounded-lg transition-all
+            ${isDone && teamAWon && !isTemplate
+              ? 'border-l-2 border-blue-400 bg-blue-500/10'
+              : 'border-l-2 border-transparent'
+            }`}>
+            <div className="flex items-center gap-1.5 truncate flex-1">
+              {isDone && teamAWon && !isTemplate && (
+                <span className="text-sm shrink-0">🏆</span>
+              )}
+              <span className={`font-bold text-sm truncate
+                ${isDone && teamAWon && !isTemplate ? 'text-white'
+                : isDone && !isTemplate             ? 'text-slate-300'
+                : 'text-white'}`}>
+                {isTemplate
+                  ? <span className="text-slate-400 text-xs">⏳ TBD</span>
+                  : entry.team_a_name
+                  ?? <span className="text-slate-400 text-xs">⏳ TBD</span>
+                }
+              </span>
+            </div>
+            {!isTemplate && (
+              <span className={`text-2xl font-black tabular-nums
+                                w-8 text-right shrink-0
+                ${isDone && teamAWon ? 'text-blue-400'
+                : isDone            ? 'text-slate-300'
+                : 'text-white'}`}>
+                {isTBD ? '-' : (entry.team_a_sets_won ?? 0)}
+              </span>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-slate-600 mx-2" />
+
+          {/* Team B */}
+          <div className={`flex items-center justify-between gap-2
+                           px-2 py-2 rounded-lg transition-all
+            ${isDone && teamBWon && !isTemplate
+              ? 'border-l-2 border-orange-400 bg-orange-500/10'
+              : 'border-l-2 border-transparent'
+            }`}>
+            <div className="flex items-center gap-1.5 truncate flex-1">
+              {isDone && teamBWon && !isTemplate && (
+                <span className="text-sm shrink-0">🏆</span>
+              )}
+              <span className={`font-bold text-sm truncate
+                ${isDone && teamBWon && !isTemplate ? 'text-white'
+                : isDone && !isTemplate             ? 'text-slate-300'
+                : 'text-white'}`}>
+                {isTemplate
+                  ? <span className="text-slate-400 text-xs">⏳ TBD</span>
+                  : entry.team_b_name
+                  ?? <span className="text-slate-400 text-xs">⏳ TBD</span>
+                }
+              </span>
+            </div>
+            {!isTemplate && (
+              <span className={`text-2xl font-black tabular-nums
+                                w-8 text-right shrink-0
+                ${isDone && teamBWon ? 'text-orange-400'
+                : isDone            ? 'text-slate-300'
+                : 'text-white'}`}>
+                {isTBD ? '-' : (entry.team_b_sets_won ?? 0)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Set scores */}
+        {!isTemplate && entry.sets?.length > 0 && (
+          <div className={`grid gap-1.5 mt-3
+            ${entry.sets.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {entry.sets.map(s => (
+              <div key={s.set_number}
+                className="bg-slate-700/60 border border-slate-600
+                           rounded-lg px-2 py-1.5 text-center">
+                <div className="text-xs font-bold text-slate-300 mb-0.5">
+                  S{s.set_number}
+                </div>
+                <div className="font-mono font-bold text-sm text-white">
+                  {s.team_a_score}-{s.team_b_score}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Description for template */}
+        {isTemplate && (
+          <div className="mt-2 text-center text-xs text-slate-300
+                          font-medium">
+            {entry.description}
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
+// ── Main page ─────────────────────────────────────────────
 export default function Playoffs() {
   const [status, setStatus]   = useState(null)
   const [bracket, setBracket] = useState(null)
@@ -73,7 +249,11 @@ export default function Playoffs() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <div className="text-slate-400 animate-pulse">Loading bracket...</div>
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-5 h-5 rounded-full border-2 border-blue-500
+                        border-t-transparent animate-spin" />
+        <p className="text-slate-300 text-sm">Loading bracket...</p>
+      </div>
     </div>
   )
 
@@ -81,15 +261,43 @@ export default function Playoffs() {
   const isPlayoffs  = status?.stage === 'playoffs'
   const isCompleted = status?.stage === 'completed'
 
+  // Helper to find a bracket entry by type
+  const getEntry = (type) =>
+    bracket?.bracket?.find(e => e.match_type === type)
+
+  const q1   = getEntry('qualifier_1')
+  const elim = getEntry('eliminator')
+  const q2   = getEntry('qualifier_2')
+  const fin  = getEntry('final')
+
+  // Find eliminated team from eliminator
+  const elimLoser = elim?.winner_team_id
+    ? (elim.winner_team_id === elim.team_a_id
+        ? elim.team_b_name
+        : elim.team_a_name)
+    : null
+
+  const handleClick = (entry) => {
+    if (!entry?.match_id) return
+    const isTBD = !entry.team_a_name || !entry.team_b_name
+    if (isTBD) return
+    navigate(isAdmin
+      ? `/admin/match/${entry.match_id}`
+      : `/match/${entry.match_id}`)
+  }
+
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
+
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Playoffs</h1>
         {isAdmin && (
           <button
             onClick={() => navigate('/admin/playoffs')}
-            className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300
-                       px-3 py-1.5 rounded-lg transition-colors"
+            className="text-xs bg-slate-700 hover:bg-slate-600
+                       text-slate-300 hover:text-white px-3 py-1.5
+                       rounded-lg transition-colors font-semibold"
           >
             ⚙️ Admin
           </button>
@@ -99,226 +307,251 @@ export default function Playoffs() {
       {/* Champion banner */}
       {isCompleted && (
         <div className="bg-yellow-500/10 border border-yellow-500/50
-                        rounded-2xl p-8 text-center space-y-3">
-          <div className="text-5xl">🏆</div>
-          <div className="text-2xl font-black text-white">Tournament Champion</div>
-          <div className="text-yellow-400 font-bold text-2xl">
-            {bracket?.bracket?.find(b => b.match_type === 'final')?.winner_name}
+                        rounded-2xl p-6 sm:p-8 text-center space-y-3">
+          <div className="text-4xl sm:text-5xl">🏆</div>
+          <div className="text-xl sm:text-2xl font-black text-white">
+            Tournament Champion
+          </div>
+          <div className="text-yellow-400 font-bold text-xl sm:text-2xl
+                          truncate px-4">
+            {fin?.winner_name}
           </div>
         </div>
       )}
 
-      {/* League progress bar — shown during league stage */}
+      {/* League progress */}
       {isLeague && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4
-                        space-y-2">
+        <div className="bg-slate-800 border border-slate-600
+                        rounded-xl p-3 sm:p-4 space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">League Progress</span>
+            <span className="text-slate-300 font-semibold">
+              League Progress
+            </span>
             <span className="text-white font-mono font-bold">
-              {status?.league_matches_done}/{status?.league_matches_total} matches
+              {status?.league_matches_done}/
+              {status?.league_matches_total} matches
             </span>
           </div>
           <div className="w-full bg-slate-700 rounded-full h-2">
             <div
               className="bg-blue-500 h-2 rounded-full transition-all"
               style={{
-                width: `${(status?.league_matches_done / status?.league_matches_total) * 100}%`
+                width: `${(status?.league_matches_done /
+                          status?.league_matches_total) * 100}%`
               }}
             />
           </div>
-          <p className="text-xs text-slate-500">
-            Teams will be seeded into the bracket once all league matches are done
+          <p className="text-xs text-slate-300">
+            Teams seeded into bracket once all league matches are done
           </p>
         </div>
       )}
 
-      {/* IPL format explanation */}
-      <div className="bg-slate-800/50 border border-slate-700/50
-                      rounded-xl p-3 text-xs text-slate-400 space-y-1">
-        <div className="font-semibold text-slate-300 mb-2">IPL Playoff Format</div>
-        <div>🔵 <strong className="text-slate-300">Q1 Winner</strong> → directly to Final</div>
-        <div>🔵 <strong className="text-slate-300">Q1 Loser</strong> → Qualifier 2</div>
-        <div>🟠 <strong className="text-slate-300">Eliminator Winner</strong> → Qualifier 2</div>
-        <div>🟠 <strong className="text-slate-300">Eliminator Loser</strong> → Eliminated</div>
-        <div>🟣 <strong className="text-slate-300">Q2 Winner</strong> → Final</div>
-      </div>
+      {/* ── BRACKET ─────────────────────────────────────── */}
+      <div className="space-y-0">
 
-      {/* Bracket — always visible */}
-      <div className="space-y-3">
-        {isLeague
-          // ── TEMPLATE (league stage) ──────────────────────
-          ? BRACKET_TEMPLATE.map(entry => (
-              <div
-                key={entry.match_type}
-                className={`rounded-xl border p-4
-                  ${MATCH_TYPE_COLOR[entry.match_type]}
-                  ${MATCH_TYPE_BG[entry.match_type]}`}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-bold text-white">
-                    {MATCH_TYPE_LABEL[entry.match_type]}
-                  </span>
-                  <span className="text-xs text-slate-500">PENDING LEAGUE</span>
-                </div>
+        {isLeague ? (
+          // ── TEMPLATE ──────────────────────────────────
+          <div className="space-y-0">
 
-                {/* TBD teams */}
-                <div className="grid grid-cols-3 items-center text-center gap-2">
-                  <div className="text-slate-500 text-sm font-medium">
-                    ⏳ TBD
-                  </div>
-                  <div className="text-2xl font-black text-slate-600">
-                    - : -
-                  </div>
-                  <div className="text-slate-500 text-sm font-medium">
-                    ⏳ TBD
-                  </div>
-                </div>
+            {/* Final */}
+            <BracketCard
+              entry={BRACKET_TEMPLATE.find(t => t.match_type === 'final')}
+              isTemplate
+            />
 
-                <div className="mt-3 text-center text-xs text-slate-500">
-                  {entry.description}
+            {/* Final connectors */}
+            <div className="flex gap-3 pl-4">
+              <div className="flex flex-col items-center">
+                <div className="w-px h-6 bg-blue-500/40" />
+                <div className="text-xs text-blue-400 font-semibold
+                                whitespace-nowrap">
+                  Q1 Winner
                 </div>
-                <div className="mt-1 text-center text-xs text-slate-600">
-                  {entry.note}
+                <div className="w-px h-4 bg-blue-500/40" />
+              </div>
+              <div className="flex flex-col items-center ml-auto mr-4">
+                <div className="w-px h-6 bg-purple-500/40" />
+                <div className="text-xs text-purple-400 font-semibold
+                                whitespace-nowrap">
+                  Q2 Winner
+                </div>
+                <div className="w-px h-4 bg-purple-500/40" />
+              </div>
+            </div>
+
+            {/* Q2 */}
+            <BracketCard
+              entry={BRACKET_TEMPLATE.find(t => t.match_type === 'qualifier_2')}
+              isTemplate
+            />
+
+            {/* Q2 connectors */}
+            <div className="flex gap-3 pl-4">
+              <div className="flex flex-col items-center">
+                <div className="w-px h-6 bg-blue-500/40" />
+                <div className="text-xs text-blue-400 font-semibold
+                                whitespace-nowrap">
+                  Q1 Loser
+                </div>
+                <div className="w-px h-4 bg-blue-500/40" />
+              </div>
+              <div className="flex flex-col items-center ml-auto mr-4">
+                <div className="w-px h-6 bg-orange-500/40" />
+                <div className="text-xs text-orange-400 font-semibold
+                                whitespace-nowrap">
+                  Elim Winner
+                </div>
+                <div className="w-px h-4 bg-orange-500/40" />
+              </div>
+            </div>
+
+            {/* Q1 + Eliminator side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <BracketCard
+                entry={BRACKET_TEMPLATE.find(t => t.match_type === 'qualifier_1')}
+                isTemplate
+              />
+              <BracketCard
+                entry={BRACKET_TEMPLATE.find(t => t.match_type === 'eliminator')}
+                isTemplate
+              />
+            </div>
+
+            {/* Bottom labels */}
+            <div className="grid grid-cols-2 gap-3 mt-1">
+              <div className="text-center text-xs text-slate-400">
+                Rank 1 vs Rank 2
+              </div>
+              <div className="text-center text-xs text-slate-400">
+                Rank 3 vs Rank 4
+              </div>
+            </div>
+          </div>
+
+        ) : (
+          // ── REAL BRACKET ──────────────────────────────
+          <div className="space-y-0">
+
+            {/* Final */}
+            {fin && (
+              <BracketCard
+                entry={fin}
+                onClick={() => handleClick(fin)}
+              />
+            )}
+
+            {/* Final connectors */}
+            <div className="flex justify-between px-4">
+              <div className="flex flex-col items-center">
+                <div className="w-px h-5 bg-blue-500/50" />
+                <div className="text-xs text-blue-400 font-semibold
+                                whitespace-nowrap py-0.5">
+                  Q1 Winner{q1?.winner_name
+                    ? `: ${q1.winner_name}` : ''}
+                </div>
+                <div className="w-px h-5 bg-blue-500/50" />
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-px h-5 bg-purple-500/50" />
+                <div className="text-xs text-purple-400 font-semibold
+                                whitespace-nowrap py-0.5">
+                  Q2 Winner{q2?.winner_name
+                    ? `: ${q2.winner_name}` : ''}
+                </div>
+                <div className="w-px h-5 bg-purple-500/50" />
+              </div>
+            </div>
+
+            {/* Q2 */}
+            {q2 && (
+              <BracketCard
+                entry={q2}
+                onClick={() => handleClick(q2)}
+              />
+            )}
+
+            {/* Q2 connectors */}
+            <div className="flex justify-between px-4">
+              <div className="flex flex-col items-center">
+                <div className="w-px h-5 bg-blue-500/50" />
+                <div className="text-xs text-blue-400 font-semibold
+                                whitespace-nowrap py-0.5">
+                  Q1 Loser{q1?.winner_team_id
+                    ? `: ${q1.team_a_id === q1.winner_team_id
+                        ? q1.team_b_name
+                        : q1.team_a_name}`
+                    : ''}
+                </div>
+                <div className="w-px h-5 bg-blue-500/50" />
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-px h-5 bg-orange-500/50" />
+                <div className="text-xs text-orange-400 font-semibold
+                                whitespace-nowrap py-0.5">
+                  Elim Winner{elim?.winner_name
+                    ? `: ${elim.winner_name}` : ''}
+                </div>
+                <div className="w-px h-5 bg-orange-500/50" />
+              </div>
+            </div>
+
+            {/* Q1 + Eliminator side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              {q1 && (
+                <BracketCard
+                  entry={q1}
+                  onClick={() => handleClick(q1)}
+                />
+              )}
+              {elim && (
+                <BracketCard
+                  entry={elim}
+                  onClick={() => handleClick(elim)}
+                />
+              )}
+            </div>
+
+            {/* Eliminated team */}
+            {elimLoser && (
+              <div className="flex justify-end mt-1 pr-1">
+                <div className="flex items-center gap-1.5 text-xs
+                                text-red-400 font-semibold">
+                  <span>❌</span>
+                  <span>{elimLoser} eliminated</span>
                 </div>
               </div>
-            ))
+            )}
 
-          // ── REAL BRACKET (playoffs/completed) ────────────
-          : bracket?.bracket?.map(entry => {
-              const isLive = entry.schedule_status === 'live'
-              const isDone = entry.schedule_status === 'completed'
-              const isTBD  = !entry.team_a_name || !entry.team_b_name
-
-              return (
-                <div
-                  key={entry.schedule_id}
-                  onClick={() => {
-                    if (entry.match_id && !isTBD) {
-                      navigate(isAdmin
-                        ? `/admin/match/${entry.match_id}`
-                        : `/match/${entry.match_id}`)
-                    }
-                  }}
-                  className={`rounded-xl border p-4 transition-all
-                    ${MATCH_TYPE_COLOR[entry.match_type] ?? 'border-slate-700'}
-                    ${MATCH_TYPE_BG[entry.match_type] ?? 'bg-slate-800'}
-                    ${entry.match_id && !isTBD ? 'cursor-pointer hover:opacity-90' : ''}
-                  `}
-                >
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-bold text-white">
-                      {MATCH_TYPE_LABEL[entry.match_type]}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {isLive && <LiveBadge />}
-                      {isDone && (
-                        <span className="text-xs text-green-400 font-medium">FINAL</span>
-                      )}
-                      {!isLive && !isDone && !isTBD && (
-                        <span className="text-xs text-slate-500">UPCOMING</span>
-                      )}
-                      {isTBD && (
-                        <span className="text-xs text-slate-600">TBD</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Teams + Score */}
-                  <div className="grid grid-cols-3 items-center text-center gap-2">
-                    <div className={`font-semibold text-sm
-                      ${entry.winner_team_id === entry.team_a_id && isDone
-                        ? 'text-white' : 'text-slate-300'}`}>
-                      {entry.team_a_name ?? (
-                        <span className="text-slate-600 text-xs">⏳ TBD</span>
-                      )}
-                      {entry.winner_team_id === entry.team_a_id && isDone && (
-                        <div className="text-xs text-yellow-400 mt-0.5">🏆 Winner</div>
-                      )}
-                    </div>
-                    <div className="text-3xl font-black tabular-nums">
-                      <span className={
-                        entry.winner_team_id === entry.team_a_id && isDone
-                          ? 'text-white' : 'text-slate-400'
-                      }>
-                        {isTBD ? '-' : (entry.team_a_sets_won ?? '-')}
-                      </span>
-                      <span className="text-slate-600 mx-1 text-xl">:</span>
-                      <span className={
-                        entry.winner_team_id === entry.team_b_id && isDone
-                          ? 'text-white' : 'text-slate-400'
-                      }>
-                        {isTBD ? '-' : (entry.team_b_sets_won ?? '-')}
-                      </span>
-                    </div>
-                    <div className={`font-semibold text-sm
-                      ${entry.winner_team_id === entry.team_b_id && isDone
-                        ? 'text-white' : 'text-slate-300'}`}>
-                      {entry.team_b_name ?? (
-                        <span className="text-slate-600 text-xs">⏳ TBD</span>
-                      )}
-                      {entry.winner_team_id === entry.team_b_id && isDone && (
-                        <div className="text-xs text-yellow-400 mt-0.5">🏆 Winner</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Set scores */}
-                  {entry.sets?.length > 0 && (
-                    <div className={`grid gap-1.5 mt-3
-                      ${entry.sets.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                      {entry.sets.map(s => (
-                        <div key={s.set_number}
-                          className="bg-slate-800/80 rounded-lg px-2 py-1.5 text-center">
-                          <div className="text-xs text-slate-500 mb-0.5">
-                            Set {s.set_number}
-                          </div>
-                          <div className="font-mono font-bold text-sm text-slate-300">
-                            {s.team_a_score}-{s.team_b_score}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Advancement note */}
-                  {isDone && entry.winner_name && entry.match_type !== 'final' && (
-                    <div className="mt-3 text-center text-xs text-slate-400">
-                      {entry.match_type === 'qualifier_1' && (
-                        <>
-                          <span className="text-green-400 font-medium">{entry.winner_name}</span>
-                          {' '}→ Final &nbsp;|&nbsp;{' '}
-                          <span className="text-yellow-400 font-medium">
-                            {entry.team_a_name === entry.winner_name
-                              ? entry.team_b_name : entry.team_a_name}
-                          </span>
-                          {' '}→ Qualifier 2
-                        </>
-                      )}
-                      {entry.match_type === 'eliminator' && (
-                        <>
-                          <span className="text-green-400 font-medium">{entry.winner_name}</span>
-                          {' '}→ Qualifier 2 &nbsp;|&nbsp;{' '}
-                          <span className="text-red-400 font-medium">
-                            {entry.team_a_name === entry.winner_name
-                              ? entry.team_b_name : entry.team_a_name}
-                          </span>
-                          {' '}eliminated
-                        </>
-                      )}
-                      {entry.match_type === 'qualifier_2' && (
-                        <>
-                          <span className="text-green-400 font-medium">{entry.winner_name}</span>
-                          {' '}→ Final
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })
-        }
+          </div>
+        )}
       </div>
+
+      {/* IPL format legend */}
+      <div className="bg-slate-800/50 border border-slate-600
+                      rounded-xl p-3 space-y-1.5">
+        <div className="font-bold text-white mb-2 text-sm">
+          How it works
+        </div>
+        {[
+          { dot: '🔵', label: 'Q1 Winner',        arrow: 'directly to Final',  color: 'text-blue-400'   },
+          { dot: '🔵', label: 'Q1 Loser',          arrow: 'Qualifier 2',        color: 'text-blue-400'   },
+          { dot: '🟠', label: 'Eliminator Winner', arrow: 'Qualifier 2',        color: 'text-orange-400' },
+          { dot: '🟠', label: 'Eliminator Loser',  arrow: 'Eliminated',         color: 'text-red-400'    },
+          { dot: '🟣', label: 'Q2 Winner',         arrow: 'Final',              color: 'text-purple-400' },
+        ].map(row => (
+          <div key={row.label}
+               className="flex items-center gap-2 text-xs text-slate-300">
+            <span className="shrink-0">{row.dot}</span>
+            <span className={`font-bold shrink-0 ${row.color}`}>
+              {row.label}
+            </span>
+            <span className="text-slate-400">→</span>
+            <span>{row.arrow}</span>
+          </div>
+        ))}
+      </div>
+
     </div>
   )
 }
