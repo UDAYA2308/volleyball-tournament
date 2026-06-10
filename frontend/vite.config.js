@@ -8,10 +8,6 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    allowedHosts: ['.trycloudflare.com'],
-    hmr: {
-      clientPort: 443,
-      protocol: 'wss',
-    }
+    allowedHosts: ['.trycloudflare.com']
   }
 })
