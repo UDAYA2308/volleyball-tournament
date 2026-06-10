@@ -117,7 +117,7 @@ export default function Teams() {
                       </span>
                       <span className="text-blue-400 font-bold
                                        hidden sm:inline">
-                        {standing.total_points?.toFixed(2)} pts
+                        {standing.points} pts
                       </span>
                     </div>
                   )}
@@ -132,7 +132,7 @@ export default function Teams() {
                 <div className="sm:hidden px-3 pb-2.5 flex items-center
                                 gap-3 text-xs">
                   <span className="text-blue-400 font-bold">
-                    {standing.total_points?.toFixed(2)} pts
+                    {standing.points} pts
                   </span>
                 </div>
               )}

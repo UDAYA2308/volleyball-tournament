@@ -5,7 +5,7 @@ import time
 
 import requests
 
-BASE_URL = "http://localhost:8003"
+BASE_URL = "http://10.16.107.203:8000"
 DB_PATH = os.path.join(os.path.dirname(__file__), "database", "tournament.db")
 
 session = requests.Session()

@@ -278,12 +278,13 @@ def verify_results():
     for r in conn.execute("""
         SELECT
             ROW_NUMBER() OVER (
-                ORDER BY total_points DESC,
+                ORDER BY points DESC,
+                         points_rate DESC,
                          sets_won DESC,
                          total_point_diff DESC
             ) AS rank,
             team_name, matches_played, matches_won,
-            matches_lost, total_points, sets_won, total_point_diff
+            matches_lost, points, points_rate, sets_won, total_point_diff
         FROM leaderboard
     """):
         print(
@@ -291,7 +292,8 @@ def verify_results():
             f"P={r['matches_played']} "
             f"W={r['matches_won']} "
             f"L={r['matches_lost']} "
-            f"Pts={round(r['total_points'], 2):<6} "
+            f"Pts={r['points']} "
+            f"PR={round(r['points_rate'], 2):<6} "
             f"Sets={r['sets_won']} "
             f"Diff={r['total_point_diff']}"
         )

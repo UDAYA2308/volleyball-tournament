@@ -16,7 +16,6 @@ export default function Leaderboard() {
       getLeaderboard()
         .then(r => setStandings(r.data))
         .finally(() => setLoading(false))
-
     load()
     const interval = setInterval(load, 30000)
     return () => clearInterval(interval)
@@ -34,7 +33,6 @@ export default function Leaderboard() {
 
   return (
     <div className="space-y-5 sm:space-y-6">
-
       <h1 className="text-xl sm:text-2xl font-bold text-white">
         League Standings
       </h1>
@@ -43,11 +41,9 @@ export default function Leaderboard() {
                       overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[320px]">
-
             <thead>
               <tr className="border-b border-slate-600 text-slate-300
                              text-xs uppercase tracking-wider">
-                {/* Always visible */}
                 <th className="text-left px-3 sm:px-4 py-3 w-8">#</th>
                 <th className="text-left px-3 sm:px-4 py-3">Team</th>
                 <th className="text-center px-2 sm:px-4 py-3 w-8">P</th>
@@ -62,14 +58,18 @@ export default function Leaderboard() {
                                hidden md:table-cell">
                   Diff
                 </th>
-                {/* Always visible */}
+                {/* Match Points — always visible, first */}
                 <th className="text-center px-2 sm:px-4 py-3 w-14
-                               text-blue-400">
+                               text-green-400">
                   Pts
+                </th>
+                {/* Points Rate — after Pts, hidden on mobile */}
+                <th className="text-center px-2 sm:px-4 py-3 w-14
+                               text-blue-400 hidden sm:table-cell">
+                  PR
                 </th>
               </tr>
             </thead>
-
             <tbody>
               {standings.map((team, i) => {
                 const rank   = i + 1
@@ -96,10 +96,10 @@ export default function Leaderboard() {
                                        leading-tight">
                         {team.team_name}
                       </span>
-                      {/* Points shown below name on mobile */}
+                      {/* Match points shown below name on mobile */}
                       <span className="sm:hidden block text-xs
-                                       text-blue-400 font-bold mt-0.5">
-                        {team.total_points?.toFixed(2)} pts
+                                       text-green-400 font-bold mt-0.5">
+                        {team.points} pts
                       </span>
                     </td>
 
@@ -142,17 +142,23 @@ export default function Leaderboard() {
                       {team.total_point_diff}
                     </td>
 
-                    {/* Points — hidden on mobile, shown under name */}
+                    {/* Match Points — always visible */}
+                    <td className="px-2 sm:px-4 py-3 sm:py-3.5 text-center
+                                   font-bold text-green-400 tabular-nums
+                                   text-xs sm:text-sm">
+                      {team.points}
+                    </td>
+
+                    {/* Points Rate — hidden on mobile */}
                     <td className="px-2 sm:px-4 py-3 sm:py-3.5 text-center
                                    font-bold text-blue-400 tabular-nums
                                    text-xs sm:text-sm hidden sm:table-cell">
-                      {team.total_points?.toFixed(2)}
+                      {team.points_rate?.toFixed(2)}
                     </td>
                   </tr>
                 )
               })}
             </tbody>
-
           </table>
         </div>
       </div>
@@ -165,7 +171,117 @@ export default function Leaderboard() {
         <span>L = Lost</span>
         <span className="hidden sm:inline">Sets = Sets Won</span>
         <span className="hidden md:inline">Diff = Point Differential</span>
-        <span>Pts = Tournament Points</span>
+        <span>Pts = Match Points</span>
+        <span className="hidden sm:inline">PR = Points Rate</span>
+      </div>
+
+      {/* Scoring explanation */}
+      <div className="bg-slate-800/60 border border-slate-600
+                      rounded-xl p-4 space-y-4 text-xs sm:text-sm">
+        <div className="font-bold text-white text-sm">
+          How standings are calculated
+        </div>
+
+        {/* Points */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-green-400 font-bold uppercase
+                             tracking-wider text-xs">
+              Pts — Match Points
+            </span>
+          </div>
+          <div className="text-slate-300 leading-relaxed">
+            Every match result awards match points regardless of score:
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-1">
+            <div className="bg-green-500/10 border border-green-500/20
+                            rounded-lg px-3 py-2 text-center">
+              <div className="text-green-400 font-black text-lg">2</div>
+              <div className="text-slate-300 text-xs">Win (2-0 or 2-1)</div>
+            </div>
+            <div className="bg-red-500/10 border border-red-500/20
+                            rounded-lg px-3 py-2 text-center">
+              <div className="text-red-400 font-black text-lg">0</div>
+              <div className="text-slate-300 text-xs">Loss (0-2 or 1-2)</div>
+            </div>
+          </div>
+          <div className="text-slate-400 text-xs mt-1">
+            This is the primary ranking criteria — teams are sorted by
+            Pts first.
+          </div>
+        </div>
+
+        <div className="h-px bg-slate-600/50" />
+
+        {/* Points Rate */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-blue-400 font-bold uppercase
+                             tracking-wider text-xs">
+              PR — Points Rate
+            </span>
+          </div>
+          <div className="text-slate-300 leading-relaxed">
+            Used as a tiebreaker when two teams have equal Pts.
+            Rewards dominant wins and penalises heavy losses:
+          </div>
+          <div className="space-y-1.5 mt-1">
+            <div className="bg-slate-700/50 rounded-lg px-3 py-2
+                            flex items-center justify-between">
+              <span className="text-slate-300">2-0 Win</span>
+              <span className="text-green-400 font-mono font-bold">
+                +1.5 + (point diff / 10)
+              </span>
+            </div>
+            <div className="bg-slate-700/50 rounded-lg px-3 py-2
+                            flex items-center justify-between">
+              <span className="text-slate-300">2-1 Win or Loss</span>
+              <span className="text-yellow-400 font-mono font-bold">
+                point diff / 10
+              </span>
+            </div>
+            <div className="bg-slate-700/50 rounded-lg px-3 py-2
+                            flex items-center justify-between">
+              <span className="text-slate-300">0-2 Loss</span>
+              <span className="text-red-400 font-mono font-bold">
+                −1.5 + (point diff / 10)
+              </span>
+            </div>
+          </div>
+          <div className="text-slate-400 text-xs mt-1">
+            Point diff is the sum of (your score − opponent score) across
+            all sets in that match. A team that wins 21-10, 21-12 will
+            have a higher PR than one that wins 21-19, 21-19.
+          </div>
+        </div>
+
+        <div className="h-px bg-slate-600/50" />
+
+        {/* Tiebreaker order */}
+        <div className="space-y-1.5">
+          <div className="text-white font-bold text-xs uppercase
+                          tracking-wider">
+            Tiebreaker Order
+          </div>
+          <div className="space-y-1">
+            {[
+              { n: '1', label: 'Match Points (Pts)',      color: 'text-green-400' },
+              { n: '2', label: 'Points Rate (PR)',         color: 'text-blue-400'  },
+            ].map(row => (
+              <div key={row.n}
+                   className="flex items-center gap-2 text-xs">
+                <span className="w-4 h-4 rounded-full bg-slate-700
+                                 text-slate-300 font-bold flex items-center
+                                 justify-center shrink-0 text-[10px]">
+                  {row.n}
+                </span>
+                <span className={`font-semibold ${row.color}`}>
+                  {row.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Qualifier note */}
@@ -176,7 +292,6 @@ export default function Leaderboard() {
           🏆 Top 4 teams qualify for playoffs
         </div>
       )}
-
     </div>
   )
 }

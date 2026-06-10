@@ -38,7 +38,7 @@ def get_tournament_stage(cursor):
 
 def get_leaderboard_top4(cursor):
     cursor.execute("""
-        SELECT team_id, team_name, total_points, sets_won, total_point_diff
+        SELECT team_id, team_name, points, points_rate, sets_won, total_point_diff
         FROM leaderboard
         LIMIT 4
     """)

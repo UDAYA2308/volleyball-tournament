@@ -180,9 +180,7 @@ GROUP BY s.match_id, m.team_a_id, m.team_b_id;
 
 -- ============================================================
 -- VIEW 3: MATCH RESULTS
--- Final results with tournament points for completed league matches
 -- ============================================================
-
 DROP VIEW IF EXISTS match_results;
 CREATE VIEW match_results AS
 SELECT
@@ -194,7 +192,16 @@ SELECT
     msd.team_a_sets_won,
     msd.team_b_sets_won,
     msd.team_a_point_diff,
-    -- Team A tournament points
+    -- ── NEW: match points (2 for win, 0 for loss) ──
+    CASE
+        WHEN m.winner_team_id = m.team_a_id THEN 2
+        ELSE 0
+    END AS team_a_match_points,
+    CASE
+        WHEN m.winner_team_id = m.team_b_id THEN 2
+        ELSE 0
+    END AS team_b_match_points,
+    -- ── RENAMED: points rate (unchanged formula) ──
     CASE
         WHEN m.winner_team_id = m.team_a_id AND msd.team_b_sets_won = 0
             THEN 1.5 + (msd.team_a_point_diff / 10.0)
@@ -202,8 +209,7 @@ SELECT
             THEN -1.5 + (msd.team_a_point_diff / 10.0)
         ELSE
             msd.team_a_point_diff / 10.0
-    END AS team_a_tournament_points,
-    -- Team B tournament points
+    END AS team_a_points_rate,
     CASE
         WHEN m.winner_team_id = m.team_b_id AND msd.team_a_sets_won = 0
             THEN 1.5 + ((-msd.team_a_point_diff) / 10.0)
@@ -211,7 +217,7 @@ SELECT
             THEN -1.5 + ((-msd.team_a_point_diff) / 10.0)
         ELSE
             (-msd.team_a_point_diff) / 10.0
-    END AS team_b_tournament_points
+    END AS team_b_points_rate
 FROM matches m
 JOIN schedule sc ON sc.id = m.schedule_id
 JOIN match_set_differentials msd ON msd.match_id = m.id
@@ -220,9 +226,7 @@ WHERE m.status = 'completed'
 
 -- ============================================================
 -- VIEW 4: LEADERBOARD
--- Aggregated league standings with tiebreakers
 -- ============================================================
-
 DROP VIEW IF EXISTS leaderboard;
 CREATE VIEW leaderboard AS
 SELECT
@@ -239,12 +243,20 @@ SELECT
          AND mr.winner_team_id != t.id
         THEN 1 ELSE 0
     END)                    AS matches_lost,
+    -- ── NEW: match points ──
     COALESCE(SUM(
         CASE
-            WHEN mr.team_a_id = t.id THEN mr.team_a_tournament_points
-            ELSE mr.team_b_tournament_points
+            WHEN mr.team_a_id = t.id THEN mr.team_a_match_points
+            ELSE mr.team_b_match_points
         END
-    ), 0.0)                 AS total_points,
+    ), 0)                   AS points,
+    -- ── RENAMED: points rate ──
+    COALESCE(SUM(
+        CASE
+            WHEN mr.team_a_id = t.id THEN mr.team_a_points_rate
+            ELSE mr.team_b_points_rate
+        END
+    ), 0.0)                 AS points_rate,
     COALESCE(SUM(
         CASE
             WHEN mr.team_a_id = t.id THEN mr.team_a_sets_won
@@ -262,8 +274,9 @@ LEFT JOIN match_results mr
     ON mr.team_a_id = t.id OR mr.team_b_id = t.id
 GROUP BY t.id, t.name
 ORDER BY
-    total_points    DESC,
-    sets_won        DESC,
+    points           DESC,
+    points_rate      DESC,
+    sets_won         DESC,
     total_point_diff DESC;
 
 -- ============================================================

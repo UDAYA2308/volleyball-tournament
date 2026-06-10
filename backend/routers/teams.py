@@ -1,14 +1,9 @@
 import os
 import sys
-
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
-
 from fastapi import APIRouter, HTTPException
-
 from database.database import get_connection
-
 router = APIRouter(prefix="/teams", tags=["Teams"])
-
 
 # ── GET ALL TEAMS ─────────────────────────────────────────────
 @router.get("/")
@@ -31,21 +26,16 @@ def get_teams():
     finally:
         conn.close()
 
-
 # ── GET SINGLE TEAM WITH FULL ROSTER ─────────────────────────
 @router.get("/{team_id}")
 def get_team(team_id: int):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-
-        # Get team
         cursor.execute("SELECT * FROM teams WHERE id = ?", (team_id,))
         team = cursor.fetchone()
         if not team:
             raise HTTPException(status_code=404, detail="Team not found")
-
-        # Get roster
         cursor.execute(
             """
             SELECT 
@@ -63,11 +53,9 @@ def get_team(team_id: int):
             (team_id,),
         )
         players = cursor.fetchall()
-
         return {**dict(team), "players": [dict(p) for p in players]}
     finally:
         conn.close()
-
 
 # ── GET LEADERBOARD ───────────────────────────────────────────
 @router.get("/standings/leaderboard")
@@ -78,14 +66,18 @@ def get_leaderboard():
         cursor.execute("""
             SELECT 
                 ROW_NUMBER() OVER (
-                    ORDER BY total_points DESC, sets_won DESC, total_point_diff DESC
+                    ORDER BY points DESC,
+                             points_rate DESC,
+                             sets_won DESC,
+                             total_point_diff DESC
                 )                           AS rank,
                 team_id,
                 team_name,
                 matches_played,
                 matches_won,
                 matches_lost,
-                ROUND(total_points, 2)      AS total_points,
+                points,
+                ROUND(points_rate, 2)       AS points_rate,
                 sets_won,
                 total_point_diff
             FROM leaderboard
@@ -94,7 +86,6 @@ def get_leaderboard():
         return [dict(r) for r in rows]
     finally:
         conn.close()
-
 
 # ── GET PLAYER STATS ──────────────────────────────────────────
 @router.get("/stats/players")
@@ -111,7 +102,6 @@ def get_player_stats():
         return [dict(r) for r in rows]
     finally:
         conn.close()
-
 
 # ── GET SINGLE PLAYER STATS ───────────────────────────────────
 @router.get("/stats/players/{player_id}")

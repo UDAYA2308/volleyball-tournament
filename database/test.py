@@ -1,15 +1,12 @@
 import os
 import sqlite3
-
 DB_PATH = os.path.join(os.path.dirname(__file__), "tournament.db")
-
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
-
 
 def verify_data():
     conn = get_connection()
@@ -122,8 +119,34 @@ def verify_data():
     for c in config:
         print(dict(c))
 
-    conn.close()
+    print("\n" + "=" * 50)
+    print("8. LEADERBOARD")
+    print("=" * 50)
+    cursor.execute("""
+        SELECT
+            ROW_NUMBER() OVER (
+                ORDER BY points DESC,
+                         points_rate DESC,
+                         sets_won DESC,
+                         total_point_diff DESC
+            ) AS rank,
+            team_name, matches_played, matches_won,
+            matches_lost, points, points_rate, sets_won, total_point_diff
+        FROM leaderboard
+    """)
+    for r in cursor.fetchall():
+        print(
+            f"  #{r['rank']} {r['team_name']:<12} "
+            f"P={r['matches_played']} "
+            f"W={r['matches_won']} "
+            f"L={r['matches_lost']} "
+            f"Pts={r['points']} "
+            f"PR={round(r['points_rate'], 2):<6} "
+            f"Sets={r['sets_won']} "
+            f"Diff={r['total_point_diff']}"
+        )
 
+    conn.close()
 
 if __name__ == "__main__":
     verify_data()
